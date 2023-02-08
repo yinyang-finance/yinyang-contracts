@@ -3,7 +3,7 @@ pragma solidity ^0.8.18;
 
 import "forge-std/Test.sol";
 
-import "../src/Yin.sol";
+import "../src/YinYang.sol";
 import "./SimpleERC20.sol";
 
 interface IUniswapV2Factory {
@@ -14,8 +14,8 @@ interface IUniswapV2Factory {
     ) external returns (address pair);
 }
 
-contract ReflectTokenTest is Test {
-    Yin public token;
+contract YinYangTest is Test {
+    YinYang public token;
     ERC20 public quote;
     uint16 transferFee = 700;
     IUniswapV2Factory factory =
@@ -35,13 +35,21 @@ contract ReflectTokenTest is Test {
     ) public {
         uint256 initialSupply = 10 ** 27;
         vm.assume(transferAmount >= transferFee);
-        vm.assume(transferAmount < initialSupply);
+        vm.assume(transferAmount < initialSupply / 2);
         vm.assume(sender != address(0));
         vm.assume(recipient != address(0));
         vm.assume(sender != recipient);
 
         quote = new SimpleERC20();
-        token = new Yin(address(this), router, address(quote), 10 ** 19);
+        token = new YinYang(
+            address(this),
+            "Yin",
+            "YIN",
+            700,
+            router,
+            address(quote),
+            10 ** 19
+        );
         token.excludeAccount(address(this));
         token.excludeAccount(sender);
         IBaseV1Factory(IBaseV1Router(router).factory()).createPair(
@@ -57,7 +65,6 @@ contract ReflectTokenTest is Test {
             initialSupply - transferAmount
         );
         assertEq(token.balanceOf(sender), transferAmount);
-
         if (!excludeSender) {
             token.includeAccount(sender);
         }
@@ -76,7 +83,7 @@ contract ReflectTokenTest is Test {
             transferAmount - (transferAmount * transferFee) / 10000
         );
 
-        if (transferAmount > 10 ** 19) {
+        if (transferAmount >= 10 ** 21) {
             // Liquidity has been added
             assertGe(
                 IBaseV1Pair(

@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 import "./ReflectToken.sol";
 import "./LiquidityAdder.sol";
 
-contract Yin is ReflectToken {
+contract YinYang is ReflectToken {
     address public router;
     address public pair;
     address public quote;
@@ -13,10 +13,13 @@ contract Yin is ReflectToken {
 
     constructor(
         address _owner,
+        string memory name,
+        string memory symbol,
+        uint16 feeBP,
         address _router,
         address _quote,
         uint256 _minimumTokenToSell
-    ) ReflectToken(_owner, "Yin", "YIN", 18, 700) {
+    ) ReflectToken(_owner, name, symbol, 18, feeBP) {
         router = _router;
         pair = IBaseV1Factory(IBaseV1Router(_router).factory()).getPair(
             address(this),
