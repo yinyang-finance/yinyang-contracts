@@ -26,6 +26,10 @@ interface IBaseV1Router {
 
     function factory() external returns (address);
 
+    function note() external returns (address);
+
+    function wcanto() external returns (address);
+
     function pairFor(
         address tokenA,
         address tokenB,

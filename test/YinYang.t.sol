@@ -6,20 +6,11 @@ import "forge-std/Test.sol";
 import "../src/YinYang.sol";
 import "./SimpleERC20.sol";
 
-interface IUniswapV2Factory {
-    function createPair(
-        address tokenA,
-        address tokenB,
-        bool stable
-    ) external returns (address pair);
-}
-
 contract YinYangTest is Test {
     YinYang public token;
     ERC20 public quote;
     uint16 transferFee = 700;
-    IUniswapV2Factory factory =
-        IUniswapV2Factory(address(0xE387067f12561e579C5f7d4294f51867E0c1cFba));
+    uint256 thresholdAmount = 10 ** 19;
     address router = address(0xa252eEE9BDe830Ca4793F054B506587027825a8e);
 
     function setUp() public {
@@ -45,10 +36,10 @@ contract YinYangTest is Test {
             address(this),
             "Yin",
             "YIN",
-            700,
+            transferFee,
             router,
             address(quote),
-            10 ** 19
+            thresholdAmount
         );
         token.excludeAccount(address(this));
         token.excludeAccount(sender);
@@ -83,7 +74,7 @@ contract YinYangTest is Test {
             transferAmount - (transferAmount * transferFee) / 10000
         );
 
-        if (transferAmount >= 10 ** 21) {
+        if ((transferAmount * transferFee) / 10000 >= thresholdAmount) {
             // Liquidity has been added
             assertGe(
                 IBaseV1Pair(
