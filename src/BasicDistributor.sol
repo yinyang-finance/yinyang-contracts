@@ -1,26 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import "solmate/tokens/ERC20.sol";
 import "./Distributor.sol";
-import "./Zen.sol";
-import "./Temple.sol";
 
 contract Garden is Distributor {
-    Zen public zen;
-    Temple public temple;
+    ERC20 public rewardToken;
 
     constructor(
         address _owner,
         uint256 _rewardsPerBlock,
         uint256 _startBlock,
-        address _zen,
-        address _temple
+        ERC20 _rewardToken
     ) Distributor(_owner, _rewardsPerBlock, _startBlock) {
-        temple = Temple(_temple);
-        zen = Zen(_zen);
+        rewardToken = _rewardToken;
     }
 
     function _payRewards(address recipient, uint256 amount) internal override {
-        temple.mintZen(recipient, amount);
+        uint256 paidAmount = amount > rewardToken.balanceOf(address(this))
+            ? rewardToken.balanceOf(address(this))
+            : amount;
+        rewardToken.transfer(recipient, paidAmount);
     }
 }
