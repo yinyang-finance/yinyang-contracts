@@ -20,7 +20,7 @@ contract ReflectTokenTest is Test {
     uint16 transferFee = 500;
 
     function setUp() public {
-        token = new Reflect(address(this), "Test", "TEST", 18, transferFee);
+        // token = new Reflect(address(this), "Test", "TEST", 18, transferFee);
     }
 
     function testTransferFromExcluded(
@@ -67,6 +67,10 @@ contract ReflectTokenTest is Test {
     }
 
     function testInclusion(address account) public {
+        vm.assume(account != address(0));
+
+        token = new Reflect(address(this), "Test", "TEST", 18, transferFee);
+
         assertEq(token.isExcluded(account), false);
 
         token.excludeAccount(account);

@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 
 import "forge-std/Test.sol";
 import "solmate/tokens/ERC20.sol";
+import "./TurnstileRegisterEntry.sol";
 
 interface IBaseV1Pair {
     function totalSupply() external returns (uint256);
@@ -77,7 +78,7 @@ interface IBaseV1Factory {
     ) external returns (address);
 }
 
-contract LiquidityAdder {
+contract LiquidityAdder is TurnstileRegisterEntry {
     IBaseV1Router public router;
     IBaseV1Pair public pair;
     ERC20 public token;
@@ -93,7 +94,7 @@ contract LiquidityAdder {
         address _pair,
         address _token,
         address _quote
-    ) {
+    ) TurnstileRegisterEntry() {
         router = IBaseV1Router(_router);
         pair = IBaseV1Pair(_pair);
         token = ERC20(_token);

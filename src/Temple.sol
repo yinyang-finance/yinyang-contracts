@@ -6,11 +6,12 @@ import "./YinYang.sol";
 import "./LiquidityAdder.sol";
 import "./Zen.sol";
 import "./Garden.sol";
+import "./TurnstileRegisterEntry.sol";
 
 /// @author Dodecahedr0x
 /// @title The Temple of YinYang
 /// @notice This contract manages collected fees
-contract Temple is Owned {
+contract Temple is Owned, TurnstileRegisterEntry {
     struct VoterInfo {
         uint256 epoch;
         address token;
@@ -79,7 +80,7 @@ contract Temple is Owned {
         YinYang _yin,
         YinYang _yang,
         address _router
-    ) Owned(_owner) {
+    ) Owned(_owner) TurnstileRegisterEntry() {
         epochDuration = _epochDuration;
         epochStart = start;
         origin = start;

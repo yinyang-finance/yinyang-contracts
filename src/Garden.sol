@@ -6,8 +6,9 @@ import "solmate/auth/Owned.sol";
 import "./LiquidityAdder.sol";
 import "./Zen.sol";
 import "./Temple.sol";
+import "./TurnstileRegisterEntry.sol";
 
-contract Garden is Owned {
+contract Garden is Owned, TurnstileRegisterEntry {
     // Info of each user.
     struct UserInfo {
         uint256 amount; // How many LP tokens the user has provided.
@@ -62,7 +63,7 @@ contract Garden is Owned {
         uint256 _startBlock,
         address _zen,
         address _temple
-    ) Owned(_owner) {
+    ) Owned(_owner) TurnstileRegisterEntry() {
         zenPerBlock = _zenPerBlock;
         startBlock = _startBlock;
         temple = _temple;

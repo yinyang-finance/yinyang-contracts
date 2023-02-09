@@ -4,15 +4,16 @@ pragma solidity ^0.8.18;
 import "solmate/tokens/ERC20.sol";
 import "solmate/auth/Owned.sol";
 import "./LiquidityAdder.sol";
+import "./TurnstileRegisterEntry.sol";
 
-contract Zen is ERC20, Owned {
+contract Zen is ERC20, Owned, TurnstileRegisterEntry {
     address public zenWCantoPair;
     address public zenNotePair;
 
     constructor(
         address router,
         address _owner
-    ) ERC20("Zen", "ZEN", 18) Owned(_owner) {
+    ) ERC20("Zen", "ZEN", 18) Owned(_owner) TurnstileRegisterEntry() {
         address note = IBaseV1Router(router).note();
         address wcanto = IBaseV1Router(router).wcanto();
 

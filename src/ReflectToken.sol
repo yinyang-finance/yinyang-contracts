@@ -4,8 +4,9 @@ pragma solidity >=0.8.18;
 import "solmate/auth/Owned.sol";
 import "solmate/tokens/ERC20.sol";
 import "forge-std/console.sol";
+import "./TurnstileRegisterEntry.sol";
 
-abstract contract ReflectToken is Owned {
+abstract contract ReflectToken is Owned, TurnstileRegisterEntry {
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
@@ -61,7 +62,7 @@ abstract contract ReflectToken is Owned {
         string memory _symbol,
         uint8 _decimals,
         uint16 totalTransferFee
-    ) Owned(_owner) {
+    ) Owned(_owner) TurnstileRegisterEntry() {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
