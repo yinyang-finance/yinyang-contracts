@@ -11,11 +11,9 @@ interface Turnstile {
 }
 
 contract TurnstileRegisterEntry {
-    Turnstile public turnstile =
-        Turnstile(address(0xEcf044C5B4b867CFda001101c617eCd347095B44));
-    address public dev = address(0x7F63Cc4Bc0a0Ef44214e183D7EdfBA62ff8De930);
+    address constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
 
     constructor() {
-        console.log(turnstile.register(dev));
+        Turnstile(TURNSTILE).register(tx.origin);
     }
 }

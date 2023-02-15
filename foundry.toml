@@ -4,6 +4,7 @@ out = 'out'
 libs = ['lib']
 gas_reports = ["*"]
 [rpc_endpoints]
-canto_mainnet = "https://canto.slingshot.finance"
+canto_mainnet1 = "https://canto.slingshot.finance"
+canto_mainnet2 = "https://canto.evm.chandrastation.com"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

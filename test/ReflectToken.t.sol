@@ -20,10 +20,11 @@ contract ReflectTokenTest is Test {
     uint16 transferFee = 500;
 
     function setUp() public {
-        // token = new Reflect(address(this), "Test", "TEST", 18, transferFee);
+        vm.createSelectFork(vm.rpcUrl("canto_mainnet"));
+        // console.log(address(this), vm.rpcUrl("canto_mainnet"));
     }
 
-    function testTransferFromExcluded(
+    function testReflectTransferFromExcluded(
         address sender,
         address recipient,
         uint256 transferAmount,
@@ -66,7 +67,7 @@ contract ReflectTokenTest is Test {
         );
     }
 
-    function testInclusion(address account) public {
+    function testReflectInclusion(address account) public {
         vm.assume(account != address(0));
 
         token = new Reflect(address(this), "Test", "TEST", 18, transferFee);

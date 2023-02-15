@@ -79,6 +79,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
         uint256 _epochDuration,
         YinYang _yin,
         YinYang _yang,
+        Zen _zen,
         address _router
     ) Owned(_owner) TurnstileRegisterEntry() {
         epochDuration = _epochDuration;
@@ -89,6 +90,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
 
         yin = _yin;
         yang = _yang;
+        zen = _zen;
         note = IBaseV1Router(_router).note();
         wcanto = IBaseV1Router(_router).wcanto();
         router = _router;
@@ -97,12 +99,10 @@ contract Temple is Owned, TurnstileRegisterEntry {
         yang.approve(_router, type(uint256).max);
         ERC20(yin.quote()).approve(_router, type(uint256).max);
         ERC20(yang.quote()).approve(_router, type(uint256).max);
-
-        zen = new Zen(_router, address(this));
     }
 
-    function setGarden(address _garden) external onlyOwner {
-        garden = Garden(_garden);
+    function setGarden(Garden _garden) external onlyOwner {
+        garden = _garden;
     }
 
     function mintZen(address recipient, uint256 amount) external {

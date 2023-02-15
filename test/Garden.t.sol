@@ -13,12 +13,13 @@ interface IWCanto {
     function withdraw(uint) external;
 }
 
-contract TempleTest is Test {
+contract GardenTest is Test {
     Temple public temple;
     Garden public garden;
     ERC20 public quote;
     uint16 transferFee = 700;
     uint256 thresholdAmount = 10 ** 19;
+    uint256 rewardsPerBlock = 10 ** 18;
     address router = address(0xa252eEE9BDe830Ca4793F054B506587027825a8e);
     ERC20 wcanto;
     ERC20 note;
@@ -63,25 +64,47 @@ contract TempleTest is Test {
 
         garden = new Garden(
             address(this),
-            10 ** 18,
+            rewardsPerBlock,
             0,
             address(temple.zen()),
             address(temple)
         );
         temple.setGarden(garden);
+    }
 
+    function testGardenAddPool() public {
+        uint256 allocPoint = 1;
+        garden.add(1, wcanto, true, block.number);
+
+        assertEq(garden.poolLength(), 1);
+        (
+            ERC20 _lpToken,
+            uint256 _allocPoint,
+            uint256 _lastRewardBlock,
+            uint256 _accRewardsPerShare
+        ) = garden.poolInfo(0);
+
+        assertEq(address(_lpToken), address(wcanto));
+        assertEq(_allocPoint, allocPoint);
+        assertEq(_lastRewardBlock, block.number);
+        assertEq(_accRewardsPerShare, 0);
+    }
+
+    function testGardenDeposit() public {
         garden.add(1, wcanto, true, block.number);
         wcanto.approve(address(garden), 1 ether);
         garden.deposit(0, 1 ether);
+
+        assertEq(garden.balanceOf(0, address(this)), 1 ether);
     }
 
-    function testTempleVote() public {
-        vm.roll(10000);
+    function testGardenWithdraw() public {
+        garden.add(1, wcanto, true, block.number);
+        wcanto.approve(address(garden), 1 ether);
+        garden.deposit(0, 1 ether);
+        vm.roll(block.number + 1);
         garden.withdraw(0, 0);
-        console.log(temple.zen().balanceOf(address(this)));
-        temple.voteForNextTarget(
-            address(note),
-            temple.zen().balanceOf(address(this))
-        );
+
+        assertEq(garden.zen().balanceOf(address(this)), rewardsPerBlock);
     }
 }
