@@ -20,8 +20,7 @@ contract ReflectTokenTest is Test {
     uint16 transferFee = 500;
 
     function setUp() public {
-        vm.createSelectFork(vm.rpcUrl("canto_mainnet"));
-        // console.log(address(this), vm.rpcUrl("canto_mainnet"));
+        vm.createSelectFork(vm.rpcUrl("mainnet"));
     }
 
     function testReflectTransferFromExcluded(

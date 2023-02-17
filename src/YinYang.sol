@@ -21,11 +21,6 @@ contract YinYang is ReflectToken {
         uint256 _minimumTokenToSell
     ) ReflectToken(_owner, name, symbol, 18, feeBP) {
         router = _router;
-        pair = IBaseV1Factory(IBaseV1Router(_router).factory()).getPair(
-            address(this),
-            _quote,
-            false
-        );
         quote = _quote;
         minimumTokenToSell = _minimumTokenToSell;
 
@@ -40,6 +35,11 @@ contract YinYang is ReflectToken {
     ) external onlyOwner {
         require(!initialized, "Initialized");
 
+        pair = IBaseV1Factory(IBaseV1Router(router).factory()).createPair(
+            address(this),
+            quote,
+            false
+        );
         liquidityAdder = new LiquidityAdder(router, pair, address(this), quote);
         mintInitialSupply(recipient, initialSupply);
 
@@ -59,13 +59,12 @@ contract YinYang is ReflectToken {
         emit Transfer(sender, address(0), burn);
 
         // Send a share to the liquidity adder
-        _tOwned[address(liquidityAdder)] =
-            _tOwned[address(liquidityAdder)] +
-            liquidity;
-        emit Transfer(address(this), address(liquidityAdder), liquidity);
+        uint256 newLiquidity = _tOwned[address(liquidityAdder)] + liquidity;
+        _tOwned[address(liquidityAdder)] = newLiquidity;
+        emit Transfer(sender, address(liquidityAdder), liquidity);
 
         // Add liquidity if threshold reached
-        if (balanceOf(address(liquidityAdder)) > minimumTokenToSell) {
+        if (newLiquidity > minimumTokenToSell) {
             liquidityAdder.addLiquidity();
         }
 

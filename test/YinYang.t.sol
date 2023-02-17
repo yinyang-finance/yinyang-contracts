@@ -14,10 +14,10 @@ contract YinYangTest is Test {
     address router = address(0xa252eEE9BDe830Ca4793F054B506587027825a8e);
 
     function setUp() public {
-        // vm.createSelectFork(vm.rpcUrl("canto_mainnet"));
+        vm.createSelectFork(vm.rpcUrl("mainnet"));
     }
 
-    function testTransferYinYang(
+    function testYinYangTransfer(
         address sender,
         address recipient,
         uint256 transferAmount,
@@ -43,11 +43,6 @@ contract YinYangTest is Test {
         );
         token.excludeAccount(address(this));
         token.excludeAccount(sender);
-        IBaseV1Factory(IBaseV1Router(router).factory()).createPair(
-            address(token),
-            address(quote),
-            false
-        );
         token.initialize(address(this), initialSupply);
         token.transfer(sender, transferAmount);
 

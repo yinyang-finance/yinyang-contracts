@@ -1,87 +1,16 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
 import "forge-std/Test.sol";
 import "solmate/tokens/ERC20.sol";
+import "./ReflectToken.sol";
 import "./TurnstileRegisterEntry.sol";
-
-interface IBaseV1Pair {
-    function totalSupply() external returns (uint256);
-
-    function getReserves()
-        external
-        view
-        returns (
-            uint112 _reserve0,
-            uint112 _reserve1,
-            uint32 _blockTimestampLast
-        );
-}
-
-interface IBaseV1Router {
-    struct route {
-        address from;
-        address to;
-        bool stable;
-    }
-
-    function factory() external returns (address);
-
-    function note() external returns (address);
-
-    function wcanto() external returns (address);
-
-    function pairFor(
-        address tokenA,
-        address tokenB,
-        bool stable
-    ) external view returns (address pair);
-
-    function swapExactTokensForTokens(
-        uint amountIn,
-        uint amountOutMin,
-        route[] calldata routes,
-        address to,
-        uint deadline
-    ) external;
-
-    function addLiquidity(
-        address tokenA,
-        address tokenB,
-        bool stable,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline
-    ) external;
-}
-
-interface IBaseV1Factory {
-    function allPairsLength() external view returns (uint);
-
-    function isPair(address pair) external view returns (bool);
-
-    function pairCodeHash() external pure returns (bytes32);
-
-    function getPair(
-        address tokenA,
-        address token,
-        bool stable
-    ) external view returns (address);
-
-    function createPair(
-        address tokenA,
-        address tokenB,
-        bool stable
-    ) external returns (address);
-}
+import "./ISwap.sol";
 
 contract LiquidityAdder is TurnstileRegisterEntry {
     IBaseV1Router public router;
     IBaseV1Pair public pair;
-    ERC20 public token;
+    ReflectToken public token;
     ERC20 public quote;
     uint256 public minimumTokenToSell;
     bool private initialized = false;
@@ -97,7 +26,7 @@ contract LiquidityAdder is TurnstileRegisterEntry {
     ) TurnstileRegisterEntry() {
         router = IBaseV1Router(_router);
         pair = IBaseV1Pair(_pair);
-        token = ERC20(_token);
+        token = ReflectToken(_token);
         quote = ERC20(_quote);
         token.approve(_router, ~uint(0));
         quote.approve(_router, ~uint(0));
@@ -106,7 +35,9 @@ contract LiquidityAdder is TurnstileRegisterEntry {
     function addLiquidity() public {
         uint256 adderTokenBalance = token.balanceOf(address(this));
 
-        if (!inSwapAndLiquify && pair.totalSupply() > 0) {
+        if (
+            !inSwapAndLiquify && pair.totalSupply() > 0 && adderTokenBalance > 0
+        ) {
             inSwapAndLiquify = true;
 
             // Sell half for some base coins
@@ -126,7 +57,6 @@ contract LiquidityAdder is TurnstileRegisterEntry {
                 block.timestamp + 360
             );
 
-            console.log(quote.balanceOf(address(this)), adderTokenBalance);
             uint256 newBalance = quote.balanceOf(address(this));
 
             router.addLiquidity(

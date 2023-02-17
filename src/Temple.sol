@@ -3,9 +3,9 @@ pragma solidity ^0.8.18;
 
 import "solmate/auth/Owned.sol";
 import "./YinYang.sol";
-import "./LiquidityAdder.sol";
 import "./Zen.sol";
 import "./Garden.sol";
+import "./ISwap.sol";
 import "./TurnstileRegisterEntry.sol";
 
 /// @author Dodecahedr0x
@@ -47,7 +47,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
     address public wcanto;
     address public note;
 
-    address public router;
+    IBaseV1Router public router;
 
     YinYang public yin;
     YinYang public yang;
@@ -67,8 +67,8 @@ contract Temple is Owned, TurnstileRegisterEntry {
     mapping(address => AccountInfo) public tokenAccounts;
     mapping(address => mapping(address => uint256)) public userAccounts;
     mapping(uint256 => mapping(address => uint256)) public participations;
-    mapping(address => address[]) private userTokens;
-    mapping(address => uint256) private lastUpdate;
+    mapping(address => address[]) internal userTokens;
+    mapping(address => uint256) internal lastUpdate;
 
     event Withdraw(address indexed user, address token, uint256 amount);
     event Harvest(address indexed user, uint256 amount);
@@ -93,7 +93,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
         zen = _zen;
         note = IBaseV1Router(_router).note();
         wcanto = IBaseV1Router(_router).wcanto();
-        router = _router;
+        router = IBaseV1Router(_router);
 
         yin.approve(_router, type(uint256).max);
         yang.approve(_router, type(uint256).max);
@@ -146,7 +146,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
         voices[proposition] = voices[proposition] + usedAmount;
         shares[proposition] = shares[proposition] + usedAmount;
 
-        zen.mintTo(msg.sender, amount);
+        zen.burnFrom(msg.sender, amount);
 
         // Update the list of voted tokens if needed
         if (tokenIsProposed[proposition] != start) {
@@ -156,7 +156,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
 
     // Can be called once per epoch to sell collected tokens to buy the elected token
     function harvest() public {
-        require(isHarvestable(), "PeaceMaster: cannot harvest");
+        require(isHarvestable(), "!harvestable");
 
         uint256 epochsPast = block.timestamp - epochStart / epochDuration;
         epochStart = epochStart + epochDuration * epochsPast;
@@ -188,6 +188,19 @@ contract Temple is Owned, TurnstileRegisterEntry {
 
         // Market sell Yin Yang for the target
         if (yin.balanceOf(address(this)) > 0) {
+            uint256[] memory amounts = new uint256[](3);
+            amounts[0] = yin.balanceOf(address(this));
+            (amounts[1], ) = router.getAmountOut(
+                (yin.balanceOf(address(this)) *
+                    (10000 - yin.TRANSFER_FEE_BP())) / 10000,
+                address(yin),
+                address(note)
+            );
+            (amounts[2], ) = router.getAmountOut(
+                amounts[1],
+                address(note),
+                address(wcanto)
+            );
             IBaseV1Router.route[] memory routes = new IBaseV1Router.route[](2);
             routes[0].from = address(yin);
             routes[0].to = address(note);
@@ -196,9 +209,8 @@ contract Temple is Owned, TurnstileRegisterEntry {
             routes[1].to = address(wcanto);
             routes[1].stable = false;
 
-            IBaseV1Router(router).swapExactTokensForTokens(
-                yin.balanceOf(address(this)),
-                0,
+            IBaseV1Router(router).UNSAFE_swapExactTokensForTokens(
+                amounts,
                 routes,
                 address(this),
                 block.timestamp + 360
@@ -206,14 +218,21 @@ contract Temple is Owned, TurnstileRegisterEntry {
         }
 
         if (yang.balanceOf(address(this)) > 0) {
-            IBaseV1Router.route[] memory routes = new IBaseV1Router.route[](2);
+            uint256[] memory amounts = new uint256[](2);
+            amounts[0] = yang.balanceOf(address(this));
+            (amounts[1], ) = router.getAmountOut(
+                (yang.balanceOf(address(this)) *
+                    (10000 - yang.TRANSFER_FEE_BP())) / 10000,
+                address(yang),
+                address(wcanto)
+            );
+            IBaseV1Router.route[] memory routes = new IBaseV1Router.route[](1);
             routes[0].from = address(yang);
             routes[0].to = address(wcanto);
             routes[0].stable = false;
 
-            IBaseV1Router(router).swapExactTokensForTokens(
-                yang.balanceOf(address(this)),
-                0,
+            IBaseV1Router(router).UNSAFE_swapExactTokensForTokens(
+                amounts,
                 routes,
                 address(this),
                 block.timestamp + 360
@@ -221,7 +240,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
         }
 
         if (currentTarget != wcanto) {
-            IBaseV1Router.route[] memory routes = new IBaseV1Router.route[](2);
+            IBaseV1Router.route[] memory routes = new IBaseV1Router.route[](1);
             routes[0].from = address(wcanto);
             routes[0].to = address(currentTarget);
             routes[0].stable = false;
@@ -241,6 +260,20 @@ contract Temple is Owned, TurnstileRegisterEntry {
         _updateUserAccount();
 
         emit Harvest(msg.sender, tokenAccounts[currentTarget].amount);
+    }
+
+    function claimVoterShare(uint256 i) public {
+        _updateUserAccount();
+        ShareInfo[] memory s = pendingVoterShares(msg.sender);
+        _claimSingleEpoch(s, i);
+    }
+
+    function claimAllVoterShares() public {
+        _updateUserAccount();
+        ShareInfo[] memory s = pendingVoterShares(msg.sender);
+        for (uint256 i = 0; i < s.length; i++) {
+            _claimSingleEpoch(s, i);
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -307,6 +340,22 @@ contract Temple is Owned, TurnstileRegisterEntry {
         return history.length - lastUpdate[user];
     }
 
+    function pendingVoterShares(
+        address user
+    ) internal view returns (ShareInfo[] memory) {
+        ShareInfo[] memory s = new ShareInfo[](userTokens[user].length);
+        for (uint256 i = 0; i < userTokens[user].length; i++) {
+            address token = userTokens[user][i];
+            s[i] = ShareInfo({
+                token: token,
+                decimals: ERC20(token).decimals(),
+                amount: (tokenAccounts[token].amount *
+                    userAccounts[user][token]) / tokenAccounts[token].shares
+            });
+        }
+        return s;
+    }
+
     /*//////////////////////////////////////////////////////////////
                              INTERNAL LOGIC
     //////////////////////////////////////////////////////////////*/
@@ -340,5 +389,29 @@ contract Temple is Owned, TurnstileRegisterEntry {
     function _addProposedToken(address token) internal {
         tokenIsProposed[token] = epochStart;
         proposedTokens.push(token);
+    }
+
+    function _claimSingleEpoch(ShareInfo[] memory s, uint256 i) internal {
+        uint256 contractBalance = ERC20(s[i].token).balanceOf(address(this));
+        console.log(s[i].amount, userTokens[msg.sender].length);
+        if (s[i].amount > contractBalance) {
+            s[i].amount = contractBalance; // For rounding errors
+        }
+
+        tokenAccounts[s[i].token].shares =
+            tokenAccounts[s[i].token].shares -
+            userAccounts[msg.sender][s[i].token];
+        tokenAccounts[s[i].token].amount =
+            tokenAccounts[s[i].token].amount -
+            s[i].amount;
+
+        userAccounts[msg.sender][s[i].token] = 0;
+
+        userTokens[msg.sender][i] = userTokens[msg.sender][
+            userTokens[msg.sender].length - 1
+        ];
+        userTokens[msg.sender].pop();
+        ERC20(s[i].token).transfer(msg.sender, s[i].amount);
+        emit Withdraw(msg.sender, s[i].token, s[i].amount);
     }
 }

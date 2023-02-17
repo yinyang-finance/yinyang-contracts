@@ -44,7 +44,7 @@ abstract contract ReflectToken is Owned, TurnstileRegisterEntry {
     string public symbol;
     uint8 public immutable decimals;
 
-    uint16 internal immutable TRANSFER_FEE_BP;
+    uint16 public immutable TRANSFER_FEE_BP;
     uint256 internal constant MAX = ~uint256(0);
     uint256 internal _tTotal;
     uint256 internal _rTotal;
