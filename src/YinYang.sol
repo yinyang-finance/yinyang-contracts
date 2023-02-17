@@ -8,6 +8,7 @@ contract YinYang is ReflectToken {
     address public router;
     address public pair;
     address public quote;
+    address public temple;
     LiquidityAdder public liquidityAdder;
     uint256 public minimumTokenToSell;
 
@@ -46,17 +47,25 @@ contract YinYang is ReflectToken {
         initialized = true;
     }
 
+    function setTemple(address _temple) external onlyOwner {
+        temple = _temple;
+    }
+
     function _onTransfer(
         address sender,
         uint256 reflectionFee
     ) internal override returns (uint256) {
-        uint256 burn = reflectionFee / 3;
-        uint256 liquidity = reflectionFee / 3;
+        uint256 burn = reflectionFee / 6;
+        uint256 liquidity = reflectionFee / 6;
+        uint256 templeFee = reflectionFee / 3;
 
         // Burn a share
         _tTotal = _tTotal - burn;
         _rTotal = _rTotal - burn * _getRate();
         emit Transfer(sender, address(0), burn);
+
+        _tOwned[address(temple)] += templeFee;
+        emit Transfer(sender, temple, templeFee);
 
         // Send a share to the liquidity adder
         uint256 newLiquidity = _tOwned[address(liquidityAdder)] + liquidity;
@@ -69,6 +78,6 @@ contract YinYang is ReflectToken {
         }
 
         // Reflect the rest
-        return reflectionFee - burn - liquidity;
+        return reflectionFee - burn - templeFee - liquidity;
     }
 }

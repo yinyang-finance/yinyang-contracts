@@ -72,7 +72,6 @@ contract TempleTest is Test {
         note.approve(address(router), type(uint256).max);
         yin.approve(address(router), type(uint256).max);
         yang.approve(address(router), type(uint256).max);
-        console.log(yang.pair());
         IBaseV1Router(router).addLiquidity(
             address(yang),
             address(wcanto),
@@ -105,6 +104,8 @@ contract TempleTest is Test {
             zen,
             router
         );
+        yin.setTemple(address(temple));
+        yang.setTemple(address(temple));
         zen.transferOwnership(address(temple));
 
         garden = new Garden(
