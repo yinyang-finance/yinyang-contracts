@@ -5,14 +5,6 @@ import "forge-std/Test.sol";
 import "../src/Temple.sol";
 import "../src/LiquidityAdder.sol";
 
-interface IWCanto {
-    function deposit() external payable;
-
-    function transfer(address to, uint value) external returns (bool);
-
-    function withdraw(uint) external;
-}
-
 contract TempleTest is Test {
     Temple public temple;
     Garden public garden;
@@ -52,7 +44,8 @@ contract TempleTest is Test {
             address(wcanto),
             10 ** 19
         );
-        Zen zen = new Zen(router, address(this));
+        Zen zen = new Zen(address(this));
+        zen.setPairs(router);
 
         // Note USDC pair
         address noteUsdcPair = address(

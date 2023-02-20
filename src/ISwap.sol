@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+interface IWCanto {
+    function deposit() external payable;
+
+    function transfer(address to, uint value) external returns (bool);
+
+    function withdraw(uint) external;
+}
+
 interface IBaseV1Pair {
     function totalSupply() external returns (uint256);
 

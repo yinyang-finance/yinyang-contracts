@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 import "solmate/tokens/ERC20.sol";
 import "./Distributor.sol";
 
-contract Garden is Distributor {
+contract BasicDistributor is Distributor {
     ERC20 public rewardToken;
 
     constructor(

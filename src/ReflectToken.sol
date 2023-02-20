@@ -3,8 +3,8 @@ pragma solidity >=0.8.18;
 
 import "solmate/auth/Owned.sol";
 import "solmate/tokens/ERC20.sol";
-import "forge-std/console.sol";
 import "./TurnstileRegisterEntry.sol";
+import "forge-std/console.sol";
 
 abstract contract ReflectToken is Owned, TurnstileRegisterEntry {
     /*//////////////////////////////////////////////////////////////
@@ -273,10 +273,7 @@ abstract contract ReflectToken is Owned, TurnstileRegisterEntry {
     function tokenFromReflection(
         uint256 reflectedAmount
     ) public view returns (uint256) {
-        require(
-            reflectedAmount <= _rTotal,
-            "Amount must be less than total reflections"
-        );
+        require(reflectedAmount <= _rTotal, "Amount > total reflections");
         uint256 currentRate = _getRate();
         return reflectedAmount / currentRate;
     }
