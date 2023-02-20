@@ -132,8 +132,8 @@ contract TempleTest is Test {
 
         temple.voteForNextTarget(voteToken, voteAmount);
 
-        assertEq(temple.voices(voteToken), voteAmount);
-        assertEq(temple.shares(voteToken), voteAmount);
+        assertEq(temple.voices(0, voteToken), voteAmount);
+        assertEq(temple.shares(), voteAmount);
         assertEq(temple.votersToken(address(this)), voteToken);
         assertEq(
             temple.zen().balanceOf(address(this)),
@@ -194,14 +194,16 @@ contract TempleTest is Test {
                 rewardsPerBlock
         );
         assertEq(temple.votersToken(address(this)), voteToken);
-        assertEq(temple.voices(voteToken), rewardsPerBlock);
-        assertEq(temple.shares(voteToken), rewardsPerBlock);
+        assertEq(temple.voices(0, voteToken), rewardsPerBlock);
+        assertEq(temple.shares(), 0);
         assertEq(temple.zen().balanceOf(address(this)), 0);
     }
 
-    function testTempleUpdateAccount() public {
+    function testTempleUpdateAccount(uint256 voteAmount) public {
+        vm.assume(voteAmount > 0);
+        vm.assume(voteAmount < rewardsPerBlock);
+
         // Deposit into the garden
-        uint256 voteAmount = 10 ** 15;
         vm.deal(address(this), rewardsPerBlock);
         IWCanto(address(wcanto)).deposit{value: voteAmount}();
         garden.deposit(0, voteAmount);
@@ -244,8 +246,33 @@ contract TempleTest is Test {
                 rewardsPerBlock
         );
         assertEq(temple.votersToken(otherUser), voteToken);
-        assertEq(temple.voices(voteToken), rewardsPerBlock);
-        assertEq(temple.shares(voteToken), rewardsPerBlock);
+        assertEq(temple.voices(0, voteToken), rewardsPerBlock);
         assertEq(temple.zen().balanceOf(otherUser), 0);
+    }
+
+    function testTempleSharesTransferBetweenRounds(uint256 voteAmount) public {
+        vm.assume(voteAmount > 0);
+        vm.assume(voteAmount < rewardsPerBlock);
+
+        // Deposit into the garden
+        vm.deal(address(this), rewardsPerBlock);
+        IWCanto(address(wcanto)).deposit{value: voteAmount}();
+        garden.deposit(0, voteAmount);
+
+        vm.roll(block.number + 1);
+        address voteToken = address(note);
+        garden.withdraw(0, 0);
+        temple.voteForNextTarget(voteToken, voteAmount);
+
+        vm.warp(block.timestamp + epochPeriod + 1);
+        temple.harvest();
+
+        vm.roll(block.number + 1);
+        garden.withdraw(0, 0);
+        temple.voteForNextTarget(voteToken, voteAmount);
+
+        assertEq(temple.participations(1, address(this)), 2 * voteAmount);
+        assertEq(temple.voices(1, voteToken), 2 * voteAmount);
+        assertEq(temple.shares(), 2 * voteAmount);
     }
 }

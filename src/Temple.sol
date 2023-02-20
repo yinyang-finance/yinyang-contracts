@@ -59,8 +59,10 @@ contract Temple is Owned, TurnstileRegisterEntry {
     mapping(address => uint256) public tokenIsProposed;
     address[] public proposedTokens;
     uint256 public numberProposedTokens;
-    mapping(address => uint256) public voices;
-    mapping(address => uint256) public shares;
+    /// @notice Amount of voices for each proposed token at a given epoch
+    mapping(uint256 => mapping(address => uint256)) public voices;
+    /// @notice Total number of shares that voted for an epoch
+    uint256 public shares;
     mapping(address => address) public votersToken;
     mapping(address => uint256) public votersEpoch;
 
@@ -121,30 +123,30 @@ contract Temple is Owned, TurnstileRegisterEntry {
     /// This is checked by the UI.
     function voteForNextTarget(address proposition, uint256 amount) public {
         uint256 start = epochStart;
+        uint256 epoch = history.length;
 
         if (votersEpoch[msg.sender] == start) {
             // The user has already voted
-            uint256 oldAmount = participations[history.length][msg.sender];
+            uint256 oldAmount = participations[epoch][msg.sender];
             address oldToken = votersToken[msg.sender];
             // Remove voices from the old proposition
-            voices[oldToken] = voices[oldToken] - oldAmount;
-            shares[oldToken] = shares[oldToken] - oldAmount;
+            voices[epoch][oldToken] -= oldAmount;
+            shares -= oldAmount;
             // Update infos
-            participations[history.length][msg.sender] = oldAmount + amount;
+            participations[epoch][msg.sender] = oldAmount + amount;
         } else {
-            // Check for pending shgares due to skipped epoch
-            _updateUserAccount(msg.sender, history.length);
+            // Check for pending shares
+            _updateUserAccount(msg.sender, epoch);
+
             votersEpoch[msg.sender] = start;
-            participations[history.length][msg.sender] =
-                participations[history.length][msg.sender] +
-                amount;
+            participations[epoch][msg.sender] += amount;
         }
 
         // Add voices to the new proposition
         votersToken[msg.sender] = proposition;
-        uint256 usedAmount = participations[history.length][msg.sender];
-        voices[proposition] = voices[proposition] + usedAmount;
-        shares[proposition] = shares[proposition] + usedAmount;
+        uint256 usedAmount = participations[epoch][msg.sender];
+        voices[epoch][proposition] += usedAmount;
+        shares += usedAmount;
 
         zen.burnFrom(msg.sender, amount);
 
@@ -158,24 +160,24 @@ contract Temple is Owned, TurnstileRegisterEntry {
     function harvest() public {
         require(isHarvestable(), "!harvestable");
 
-        uint256 epochsPast = block.timestamp - epochStart / epochDuration;
+        uint256 epochsPast = (block.timestamp - epochStart) / epochDuration;
         epochStart = epochStart + epochDuration * epochsPast;
 
         currentTarget = getWinner();
-        uint256 spentShares = shares[currentTarget];
         tokenAccounts[currentTarget].shares =
             tokenAccounts[currentTarget].shares +
-            spentShares;
+            shares;
         history.push(
             EpochInfo({
                 startTime: epochStart,
                 result: ProposalInfo({
                     token: currentTarget,
-                    voices: voices[currentTarget],
-                    shares: spentShares
+                    voices: voices[history.length][currentTarget],
+                    shares: shares
                 })
             })
         );
+        shares = 0;
 
         _cleanProposedTokens();
         _addProposedToken(address(0));
@@ -293,8 +295,8 @@ contract Temple is Owned, TurnstileRegisterEntry {
     ) external view returns (address, uint256, uint256) {
         return (
             proposedTokens[index],
-            voices[proposedTokens[index]],
-            shares[proposedTokens[index]]
+            voices[history.length][proposedTokens[index]],
+            shares
         );
     }
 
@@ -318,8 +320,8 @@ contract Temple is Owned, TurnstileRegisterEntry {
         uint256 maxVoices = 0;
         address winner = address(0);
         for (uint256 i = 0; i < proposedTokens.length; i++) {
-            if (voices[proposedTokens[i]] > maxVoices) {
-                maxVoices = voices[proposedTokens[i]];
+            if (voices[history.length][proposedTokens[i]] > maxVoices) {
+                maxVoices = voices[history.length][proposedTokens[i]];
                 winner = proposedTokens[i];
             }
         }
@@ -367,13 +369,14 @@ contract Temple is Owned, TurnstileRegisterEntry {
     function _updateUserAccount(address user, uint256 end) internal {
         for (uint256 i = lastUpdate[user]; i < end; i++) {
             if (participations[i][user] > 0) {
-                // Transfer shares to next round
+                // Epoch was skipped, transfer shares to next round
                 participations[i + 1][user] = participations[i][user];
 
                 userTokens[user].push(history[i].result.token);
                 userAccounts[user][history[i].result.token] =
                     userAccounts[user][history[i].result.token] +
                     participations[i][user];
+
                 participations[i][user] = 0;
             }
             lastUpdate[user] = i + 1;

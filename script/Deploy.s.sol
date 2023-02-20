@@ -13,7 +13,7 @@ contract DeployScript is Script {
     uint256 blockPerDay = 86400 / blockTime;
     uint256 rewardPerDay = 10 ** 22;
     uint256 rewardsPerBlock = rewardPerDay / blockPerDay;
-    uint256 epochPeriod = 2;
+    uint256 epochPeriod = 600;
     uint256 startBlock = 0;
     address router = address(0xa252eEE9BDe830Ca4793F054B506587027825a8e);
     address eth = address(0x5FD55A1B9FC24967C4dB09C513C3BA0DFa7FF687);
