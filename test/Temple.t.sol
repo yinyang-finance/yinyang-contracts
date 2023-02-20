@@ -198,4 +198,54 @@ contract TempleTest is Test {
         assertEq(temple.shares(voteToken), rewardsPerBlock);
         assertEq(temple.zen().balanceOf(address(this)), 0);
     }
+
+    function testTempleUpdateAccount() public {
+        // Deposit into the garden
+        uint256 voteAmount = 10 ** 15;
+        vm.deal(address(this), rewardsPerBlock);
+        IWCanto(address(wcanto)).deposit{value: voteAmount}();
+        garden.deposit(0, voteAmount);
+
+        address otherUser = address(123);
+        vm.startPrank(otherUser);
+        vm.deal(otherUser, rewardsPerBlock);
+        IWCanto(address(wcanto)).deposit{value: rewardsPerBlock - voteAmount}();
+        wcanto.approve(address(garden), type(uint256).max);
+        garden.deposit(0, rewardsPerBlock - voteAmount);
+        vm.stopPrank();
+
+        vm.roll(block.number + 1);
+
+        garden.withdraw(0, 0);
+
+        vm.prank(otherUser);
+        garden.withdraw(0, 0);
+
+        address voteToken = address(note);
+
+        temple.voteForNextTarget(voteToken, voteAmount);
+        vm.prank(otherUser);
+        temple.voteForNextTarget(voteToken, rewardsPerBlock - voteAmount);
+
+        vm.warp(block.timestamp + epochPeriod + 1);
+        temple.harvest();
+
+        vm.startPrank(otherUser);
+        temple.updateUserAccount(1);
+        uint256 balanceBefore = note.balanceOf(otherUser);
+        uint256 balanceContractBefore = note.balanceOf(address(temple));
+        temple.claimAllVoterShares();
+        vm.stopPrank();
+
+        assertEq(
+            note.balanceOf(otherUser),
+            balanceBefore +
+                (balanceContractBefore * (rewardsPerBlock - voteAmount)) /
+                rewardsPerBlock
+        );
+        assertEq(temple.votersToken(otherUser), voteToken);
+        assertEq(temple.voices(voteToken), rewardsPerBlock);
+        assertEq(temple.shares(voteToken), rewardsPerBlock);
+        assertEq(temple.zen().balanceOf(otherUser), 0);
+    }
 }

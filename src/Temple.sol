@@ -133,7 +133,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
             participations[history.length][msg.sender] = oldAmount + amount;
         } else {
             // Check for pending shgares due to skipped epoch
-            _updateUserAccount();
+            _updateUserAccount(msg.sender, history.length);
             votersEpoch[msg.sender] = start;
             participations[history.length][msg.sender] =
                 participations[history.length][msg.sender] +
@@ -181,7 +181,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
         _addProposedToken(address(0));
 
         if (currentTarget == address(0)) {
-            _updateUserAccount();
+            _updateUserAccount(msg.sender, history.length);
             emit Harvest(msg.sender, 0);
             return;
         }
@@ -257,23 +257,27 @@ contract Temple is Owned, TurnstileRegisterEntry {
         tokenAccounts[currentTarget].amount = ERC20(currentTarget).balanceOf(
             address(this)
         );
-        _updateUserAccount();
+        _updateUserAccount(msg.sender, history.length);
 
         emit Harvest(msg.sender, tokenAccounts[currentTarget].amount);
     }
 
     function claimVoterShare(uint256 i) public {
-        _updateUserAccount();
+        _updateUserAccount(msg.sender, history.length);
         ShareInfo[] memory s = pendingVoterShares(msg.sender);
         _claimSingleEpoch(s, i);
     }
 
     function claimAllVoterShares() public {
-        _updateUserAccount();
+        _updateUserAccount(msg.sender, history.length);
         ShareInfo[] memory s = pendingVoterShares(msg.sender);
         for (uint256 i = 0; i < s.length; i++) {
             _claimSingleEpoch(s, i);
         }
+    }
+
+    function updateUserAccount(uint256 end) external {
+        _updateUserAccount(msg.sender, end);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -360,23 +364,19 @@ contract Temple is Owned, TurnstileRegisterEntry {
                              INTERNAL LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    function _updateUserAccount() internal {
-        for (uint256 i = lastUpdate[msg.sender]; i < history.length; i++) {
-            if (participations[i][msg.sender] > 0) {
-                if (history[i].result.token == address(0)) {
-                    // Epoch was skipped, transfer shares to next round
-                    participations[i + 1][msg.sender] = participations[i][
-                        msg.sender
-                    ];
-                } else {
-                    userTokens[msg.sender].push(history[i].result.token);
-                    userAccounts[msg.sender][history[i].result.token] =
-                        userAccounts[msg.sender][history[i].result.token] +
-                        participations[i][msg.sender];
-                }
-                participations[i][msg.sender] = 0;
+    function _updateUserAccount(address user, uint256 end) internal {
+        for (uint256 i = lastUpdate[user]; i < end; i++) {
+            if (participations[i][user] > 0) {
+                // Transfer shares to next round
+                participations[i + 1][user] = participations[i][user];
+
+                userTokens[user].push(history[i].result.token);
+                userAccounts[user][history[i].result.token] =
+                    userAccounts[user][history[i].result.token] +
+                    participations[i][user];
+                participations[i][user] = 0;
             }
-            lastUpdate[msg.sender] = i + 1;
+            lastUpdate[user] = i + 1;
         }
     }
 
@@ -393,7 +393,6 @@ contract Temple is Owned, TurnstileRegisterEntry {
 
     function _claimSingleEpoch(ShareInfo[] memory s, uint256 i) internal {
         uint256 contractBalance = ERC20(s[i].token).balanceOf(address(this));
-        console.log(s[i].amount, userTokens[msg.sender].length);
         if (s[i].amount > contractBalance) {
             s[i].amount = contractBalance; // For rounding errors
         }

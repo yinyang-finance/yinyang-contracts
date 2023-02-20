@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import "solmate/tokens/ERC20.sol";
-import "solmate/auth/Owned.sol";
-import "./LiquidityAdder.sol";
-import "forge-std/console.sol";
-
 interface Turnstile {
     function register(address) external returns (uint256);
 }
