@@ -5,3 +5,7 @@
 [submodule "lib/solmate"]
 	path = lib/solmate
 	url = https://github.com/transmissions11/solmate
+[submodule "lib/multicaller"]
+	path = lib/multicaller
+	url = https://github.com/vectorized/multicaller
+	branch = v1.0.2
