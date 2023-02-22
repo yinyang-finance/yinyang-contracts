@@ -100,8 +100,8 @@ contract DeployScript is Script {
         // Create pools
         garden.add(1, ERC20(yin.pair()), true, startBlock);
         garden.add(1, ERC20(yang.pair()), true, startBlock);
-        garden.add(10, ERC20(zen.zenWCantoPair()), true, startBlock);
         garden.add(10, ERC20(zen.zenNotePair()), true, startBlock);
+        garden.add(10, ERC20(zen.zenWCantoPair()), true, startBlock);
 
         yinDistributor.add(10, ERC20(address(yang)), true, startBlock);
         yinDistributor.add(5, ERC20(address(cantoShib)), true, startBlock);
@@ -114,6 +114,7 @@ contract DeployScript is Script {
 
         vm.stopBroadcast();
 
+        console.log('export const NULL_ADDRESS = "%s";', address(0));
         console.log('export const WCANTO_ADDRESS = "%s";', address(wcanto));
         console.log('export const NOTE_ADDRESS = "%s";', address(note));
         console.log('export const YIN_ADDRESS = "%s";', address(yin));

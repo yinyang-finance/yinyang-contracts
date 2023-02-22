@@ -27,6 +27,19 @@ interface IBaseV1Pair {
         address to,
         bytes calldata data
     ) external;
+
+    function metadata()
+        external
+        view
+        returns (
+            uint dec0,
+            uint dec1,
+            uint r0,
+            uint r1,
+            bool st,
+            address t0,
+            address t1
+        );
 }
 
 interface IBaseV1Router {

@@ -119,7 +119,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
     }
 
     /// @notice Votes for a token. If a vote has already been cast, all voices go to the new choice.
-    /// The proposed token should have a BNB LP on Pancake swap, else the harvest will not work.
+    /// The proposed token should have a WCanto LP on CantoDex, else the harvest will not work.
     /// This is checked by the UI.
     function voteForNextTarget(address proposition, uint256 amount) public {
         uint256 start = epochStart;
@@ -179,7 +179,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
         );
         shares = 0;
 
-        _cleanProposedTokens();
+        delete proposedTokens;
         _addProposedToken(address(0));
 
         if (currentTarget == address(0)) {
@@ -383,13 +383,8 @@ contract Temple is Owned, TurnstileRegisterEntry {
         }
     }
 
-    function _cleanProposedTokens() internal {
-        while (proposedTokens.length > 0) {
-            proposedTokens.pop();
-        }
-    }
-
     function _addProposedToken(address token) internal {
+        require(proposedTokens.length < 50, "too many propositions");
         tokenIsProposed[token] = epochStart;
         proposedTokens.push(token);
     }
