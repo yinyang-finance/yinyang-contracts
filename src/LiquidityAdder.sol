@@ -43,12 +43,11 @@ contract LiquidityAdder is TurnstileRegisterEntry {
             // A bit more to account for slippage
             uint256 tokenAmountToBeSwapped = (adderTokenBalance * 535) / 1000;
             uint256 otherHalf = adderTokenBalance - tokenAmountToBeSwapped;
-            IBaseV1Router.route[] memory routes = new IBaseV1Router.route[](1);
-            routes[0].from = address(token);
-            routes[0].to = address(quote);
-            routes[0].stable = false;
+            address[] memory routes = new address[](2);
+            routes[0] = address(token);
+            routes[1] = address(quote);
 
-            router.swapExactTokensForTokens(
+            router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
                 tokenAmountToBeSwapped,
                 0,
                 routes,
@@ -61,7 +60,6 @@ contract LiquidityAdder is TurnstileRegisterEntry {
             router.addLiquidity(
                 address(token),
                 address(quote),
-                false,
                 otherHalf,
                 newBalance,
                 0,

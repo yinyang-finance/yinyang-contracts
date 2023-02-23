@@ -38,8 +38,7 @@ contract YinYang is ReflectToken {
 
         pair = IBaseV1Factory(IBaseV1Router(router).factory()).createPair(
             address(this),
-            quote,
-            false
+            quote
         );
         liquidityAdder = new LiquidityAdder(router, pair, address(this), quote);
         mintInitialSupply(recipient, initialSupply);
@@ -64,6 +63,7 @@ contract YinYang is ReflectToken {
         _rTotal = _rTotal - burn * _getRate();
         emit Transfer(sender, address(0), burn);
 
+        // Send to temple
         _tOwned[address(temple)] += templeFee;
         emit Transfer(sender, temple, templeFee);
 

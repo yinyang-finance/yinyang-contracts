@@ -82,6 +82,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
         YinYang _yin,
         YinYang _yang,
         Zen _zen,
+        address _note,
         address _router
     ) Owned(_owner) TurnstileRegisterEntry() {
         epochDuration = _epochDuration;
@@ -93,8 +94,8 @@ contract Temple is Owned, TurnstileRegisterEntry {
         yin = _yin;
         yang = _yang;
         zen = _zen;
-        note = IBaseV1Router(_router).note();
-        wcanto = IBaseV1Router(_router).wcanto();
+        note = _note;
+        wcanto = IBaseV1Router(_router).WETH();
         router = IBaseV1Router(_router);
 
         yin.approve(_router, type(uint256).max);
@@ -190,70 +191,49 @@ contract Temple is Owned, TurnstileRegisterEntry {
 
         // Market sell Yin Yang for the target
         if (yin.balanceOf(address(this)) > 0) {
-            uint256[] memory amounts = new uint256[](3);
-            amounts[0] = yin.balanceOf(address(this));
-            (amounts[1], ) = router.getAmountOut(
-                (yin.balanceOf(address(this)) *
-                    (10000 - yin.TRANSFER_FEE_BP())) / 10000,
-                address(yin),
-                address(note)
-            );
-            (amounts[2], ) = router.getAmountOut(
-                amounts[1],
-                address(note),
-                address(wcanto)
-            );
-            IBaseV1Router.route[] memory routes = new IBaseV1Router.route[](2);
-            routes[0].from = address(yin);
-            routes[0].to = address(note);
-            routes[0].stable = false;
-            routes[1].from = address(note);
-            routes[1].to = address(wcanto);
-            routes[1].stable = false;
+            address[] memory routes = new address[](3);
+            routes[0] = address(yin);
+            routes[1] = address(note);
+            routes[2] = address(wcanto);
 
-            IBaseV1Router(router).UNSAFE_swapExactTokensForTokens(
-                amounts,
-                routes,
-                address(this),
-                block.timestamp + 360
-            );
+            IBaseV1Router(router)
+                .swapExactTokensForTokensSupportingFeeOnTransferTokens(
+                    yin.balanceOf(address(this)),
+                    0,
+                    routes,
+                    address(this),
+                    block.timestamp + 360
+                );
         }
 
         if (yang.balanceOf(address(this)) > 0) {
-            uint256[] memory amounts = new uint256[](2);
-            amounts[0] = yang.balanceOf(address(this));
-            (amounts[1], ) = router.getAmountOut(
-                (yang.balanceOf(address(this)) *
-                    (10000 - yang.TRANSFER_FEE_BP())) / 10000,
-                address(yang),
-                address(wcanto)
-            );
-            IBaseV1Router.route[] memory routes = new IBaseV1Router.route[](1);
-            routes[0].from = address(yang);
-            routes[0].to = address(wcanto);
-            routes[0].stable = false;
+            address[] memory routes = new address[](2);
+            routes[0] = address(yang);
+            routes[1] = address(wcanto);
 
-            IBaseV1Router(router).UNSAFE_swapExactTokensForTokens(
-                amounts,
-                routes,
-                address(this),
-                block.timestamp + 360
-            );
+            IBaseV1Router(router)
+                .swapExactTokensForTokensSupportingFeeOnTransferTokens(
+                    yang.balanceOf(address(this)),
+                    0,
+                    routes,
+                    address(this),
+                    block.timestamp + 360
+                );
         }
 
         if (currentTarget != wcanto) {
-            IBaseV1Router.route[] memory routes = new IBaseV1Router.route[](1);
-            routes[0].from = address(wcanto);
-            routes[0].to = address(currentTarget);
-            routes[0].stable = false;
+            address[] memory routes = new address[](2);
+            routes[0] = address(wcanto);
+            routes[1] = address(currentTarget);
 
-            IBaseV1Router(router).swapExactTokensForTokens(
-                ERC20(wcanto).balanceOf(address(this)),
-                0,
-                routes,
-                address(this),
-                block.timestamp + 360
-            );
+            IBaseV1Router(router)
+                .swapExactTokensForTokensSupportingFeeOnTransferTokens(
+                    ERC20(wcanto).balanceOf(address(this)),
+                    0,
+                    routes,
+                    address(this),
+                    block.timestamp + 360
+                );
         }
 
         tokenAccounts[currentTarget].amount = ERC20(currentTarget).balanceOf(

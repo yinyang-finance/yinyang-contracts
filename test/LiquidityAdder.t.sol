@@ -12,7 +12,7 @@ contract LiquidityAdderTest is Test {
     uint16 transferFee = 700;
     IBaseV1Factory factory =
         IBaseV1Factory(address(0xE387067f12561e579C5f7d4294f51867E0c1cFba));
-    address router = address(0xa252eEE9BDe830Ca4793F054B506587027825a8e);
+    address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
 
     function setUp() public {
         // vm.createSelectFork(vm.rpcUrl("canto_mainnet"));
@@ -29,7 +29,6 @@ contract LiquidityAdderTest is Test {
         IBaseV1Router(router).addLiquidity(
             address(token),
             address(quote),
-            false,
             10 ** 18,
             10 ** 18,
             0,
@@ -39,10 +38,9 @@ contract LiquidityAdderTest is Test {
         );
         adder = new LiquidityAdder(
             router,
-            IBaseV1Router(router).pairFor(
+            IBaseV1Factory(IBaseV1Router(router).factory()).getPair(
                 address(quote),
-                address(token),
-                false
+                address(token)
             ),
             address(token),
             address(quote)
@@ -50,13 +48,19 @@ contract LiquidityAdderTest is Test {
 
         token.transfer(address(adder), amount);
         (uint112 r0before, uint112 r1before, ) = IBaseV1Pair(
-            IBaseV1Router(router).pairFor(address(quote), address(token), false)
+            IBaseV1Factory(IBaseV1Router(router).factory()).getPair(
+                address(quote),
+                address(token)
+            )
         ).getReserves();
 
         adder.addLiquidity();
 
         (uint112 r0after, uint112 r1after, ) = IBaseV1Pair(
-            IBaseV1Router(router).pairFor(address(quote), address(token), false)
+            IBaseV1Factory(IBaseV1Router(router).factory()).getPair(
+                address(quote),
+                address(token)
+            )
         ).getReserves();
 
         if (uint160(address(quote)) > uint160(address(token))) {

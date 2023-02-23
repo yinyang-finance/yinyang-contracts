@@ -11,7 +11,7 @@ contract YinYangTest is Test {
     ERC20 public quote;
     uint16 transferFee = 700;
     uint256 thresholdAmount = 10 ** 19;
-    address router = address(0xa252eEE9BDe830Ca4793F054B506587027825a8e);
+    address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
 
     function setUp() public {
         vm.createSelectFork(vm.rpcUrl("mainnet"));
@@ -73,10 +73,9 @@ contract YinYangTest is Test {
             // Liquidity has been added
             assertGe(
                 IBaseV1Pair(
-                    IBaseV1Router(router).pairFor(
+                    IBaseV1Factory(IBaseV1Router(router).factory()).getPair(
                         address(token),
-                        address(quote),
-                        false
+                        address(quote)
                     )
                 ).totalSupply(),
                 0

@@ -12,13 +12,12 @@ contract GardenTest is Test {
     uint16 transferFee = 700;
     uint256 thresholdAmount = 10 ** 19;
     uint256 rewardsPerBlock = 10 ** 18;
-    address router = address(0xa252eEE9BDe830Ca4793F054B506587027825a8e);
+    address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
     ERC20 wcanto;
-    ERC20 note;
+    ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
 
     function setUp() public {
-        note = ERC20(IBaseV1Router(router).note());
-        wcanto = ERC20(IBaseV1Router(router).wcanto());
+        wcanto = ERC20(IBaseV1Router(router).WETH());
 
         vm.deal(address(this), 100 ether);
         IWCanto(address(wcanto)).deposit{value: 50 ether}();
@@ -42,7 +41,7 @@ contract GardenTest is Test {
             10 ** 19
         );
         Zen zen = new Zen(address(this));
-        zen.setPairs(router);
+        zen.setPairs(router, address(note));
 
         temple = new Temple(
             address(this),
@@ -51,6 +50,7 @@ contract GardenTest is Test {
             yin,
             yang,
             zen,
+            address(note),
             router
         );
         zen.transferOwnership(address(temple));

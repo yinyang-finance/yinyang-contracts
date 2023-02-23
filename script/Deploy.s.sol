@@ -14,14 +14,14 @@ contract DeployScript is Script {
     uint256 rewardPerDay = 10 ** 22;
     uint256 rewardsPerBlock = rewardPerDay / blockPerDay;
     uint256 epochPeriod = 600;
-    uint256 startBlock = 0;
-    address router = address(0xa252eEE9BDe830Ca4793F054B506587027825a8e);
+    uint256 startBlock;
+    address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
     address eth = address(0x5FD55A1B9FC24967C4dB09C513C3BA0DFa7FF687);
     address atom = address(0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265);
     address cantoInu = address(0x7264610A66EcA758A8ce95CF11Ff5741E1fd0455);
     address cantoShib = address(0xA025ced4aab666c1bbBFd5A224816705b438E50B);
     ERC20 wcanto;
-    ERC20 note;
+    ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
     Garden garden;
     Temple temple;
 
@@ -31,10 +31,13 @@ contract DeployScript is Script {
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+
+        // TODO: Set a date
+        startBlock = block.number;
+
         vm.startBroadcast(deployerPrivateKey);
 
-        note = ERC20(IBaseV1Router(router).note());
-        wcanto = ERC20(IBaseV1Router(router).wcanto());
+        wcanto = ERC20(IBaseV1Router(router).WETH());
 
         YinYang yin = new YinYang(
             tx.origin,
@@ -55,7 +58,7 @@ contract DeployScript is Script {
             minAmountToSell
         );
         Zen zen = new Zen(tx.origin);
-        zen.setPairs(router);
+        zen.setPairs(router, address(note));
 
         BasicDistributor yinDistributor = new BasicDistributor(
             tx.origin,
@@ -82,6 +85,7 @@ contract DeployScript is Script {
             yin,
             yang,
             zen,
+            address(note),
             router
         );
         yin.setTemple(address(temple));

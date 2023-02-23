@@ -13,15 +13,14 @@ contract TempleTest is Test {
     uint256 thresholdAmount = 10 ** 19;
     uint256 rewardsPerBlock = 10 ** 18;
     uint256 epochPeriod = 2;
-    address router = address(0xa252eEE9BDe830Ca4793F054B506587027825a8e);
+    address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
     ERC20 wcanto;
-    ERC20 note;
+    ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
 
     function setUp() public {
         vm.createSelectFork(vm.rpcUrl("mainnet"));
 
-        note = ERC20(IBaseV1Router(router).note());
-        wcanto = ERC20(IBaseV1Router(router).wcanto());
+        wcanto = ERC20(IBaseV1Router(router).WETH());
 
         vm.deal(address(this), 100 ether);
         IWCanto(address(wcanto)).deposit{value: 50 ether}();
@@ -45,7 +44,7 @@ contract TempleTest is Test {
             10 ** 19
         );
         Zen zen = new Zen(address(this));
-        zen.setPairs(router);
+        zen.setPairs(router, address(note));
 
         // Note USDC pair
         address noteUsdcPair = address(
@@ -68,7 +67,6 @@ contract TempleTest is Test {
         IBaseV1Router(router).addLiquidity(
             address(yang),
             address(wcanto),
-            false,
             10 ** 23,
             10 ** 18,
             0,
@@ -79,7 +77,6 @@ contract TempleTest is Test {
         IBaseV1Router(router).addLiquidity(
             address(yin),
             address(note),
-            false,
             10 ** 23,
             10 ** 18,
             0,
@@ -95,6 +92,7 @@ contract TempleTest is Test {
             yin,
             yang,
             zen,
+            address(note),
             router
         );
         yin.setTemple(address(temple));
