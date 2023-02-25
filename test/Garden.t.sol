@@ -41,7 +41,7 @@ contract GardenTest is Test {
             10 ** 19
         );
         Zen zen = new Zen(address(this));
-        zen.setPairs(router, address(note));
+        zen.setPairs(router);
 
         temple = new Temple(
             address(this),
@@ -50,7 +50,6 @@ contract GardenTest is Test {
             yin,
             yang,
             zen,
-            address(note),
             router
         );
         zen.transferOwnership(address(temple));

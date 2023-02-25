@@ -45,7 +45,6 @@ contract Temple is Owned, TurnstileRegisterEntry {
     uint256 public origin;
 
     address public wcanto;
-    address public note;
 
     IBaseV1Router public router;
 
@@ -81,7 +80,6 @@ contract Temple is Owned, TurnstileRegisterEntry {
         YinYang _yin,
         YinYang _yang,
         Zen _zen,
-        address _note,
         address _router
     ) Owned(_owner) TurnstileRegisterEntry() {
         epochDuration = _epochDuration;
@@ -93,7 +91,6 @@ contract Temple is Owned, TurnstileRegisterEntry {
         yin = _yin;
         yang = _yang;
         zen = _zen;
-        note = _note;
         wcanto = IBaseV1Router(_router).WETH();
         router = IBaseV1Router(_router);
 
@@ -188,15 +185,14 @@ contract Temple is Owned, TurnstileRegisterEntry {
             return;
         }
 
+        address[] memory routes = new address[](2);
+        routes[1] = address(wcanto);
         // Market sell Yin Yang for the target
         if (
             yin.balanceOf(address(this)) > 0 &&
             IBaseV1Pair(yin.pair()).totalSupply() > 0
         ) {
-            address[] memory routes = new address[](3);
             routes[0] = address(yin);
-            routes[1] = address(note);
-            routes[2] = address(wcanto);
 
             IBaseV1Router(router)
                 .swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -212,9 +208,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
             yang.balanceOf(address(this)) > 0 &&
             IBaseV1Pair(yang.pair()).totalSupply() > 0
         ) {
-            address[] memory routes = new address[](2);
             routes[0] = address(yang);
-            routes[1] = address(wcanto);
 
             IBaseV1Router(router)
                 .swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -227,7 +221,6 @@ contract Temple is Owned, TurnstileRegisterEntry {
         }
 
         if (currentTarget != wcanto) {
-            address[] memory routes = new address[](2);
             routes[0] = address(wcanto);
             routes[1] = address(currentTarget);
 

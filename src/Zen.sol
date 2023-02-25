@@ -7,7 +7,7 @@ import "./LiquidityAdder.sol";
 import "./TurnstileRegisterEntry.sol";
 
 contract Zen is ERC20, Owned, TurnstileRegisterEntry {
-    address public zenWCantoPair;
+    address public pair;
 
     constructor(
         address _owner
@@ -16,8 +16,10 @@ contract Zen is ERC20, Owned, TurnstileRegisterEntry {
     function setPairs(address router) external onlyOwner {
         address wcanto = IBaseV1Router(router).WETH();
 
-        zenWCantoPair = IBaseV1Factory(IBaseV1Router(router).factory())
-            .createPair(address(this), wcanto);
+        pair = IBaseV1Factory(IBaseV1Router(router).factory()).createPair(
+            address(this),
+            wcanto
+        );
     }
 
     function mintTo(address account, uint256 amount) public onlyOwner {

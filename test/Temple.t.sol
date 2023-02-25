@@ -15,7 +15,8 @@ contract TempleTest is Test {
     uint256 epochPeriod = 2;
     address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
     ERC20 wcanto;
-    ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
+
+    // ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
 
     function setUp() public {
         vm.createSelectFork(vm.rpcUrl("mainnet"));
@@ -31,7 +32,7 @@ contract TempleTest is Test {
             "YIN",
             500,
             router,
-            address(note),
+            address(wcanto),
             10 ** 19
         );
         YinYang yang = new YinYang(
@@ -44,14 +45,7 @@ contract TempleTest is Test {
             10 ** 19
         );
         Zen zen = new Zen(address(this));
-        zen.setPairs(router, address(note));
-
-        // Note USDC pair
-        address noteUsdcPair = address(
-            0x9571997a66D63958e1B3De9647C22bD6b9e7228c
-        );
-        vm.prank(noteUsdcPair);
-        note.transfer(address(this), 10 ** 21);
+        zen.setPairs(router);
 
         yin.excludeAccount(address(this));
         yin.initialize(address(this), 10 ** 27);
@@ -61,7 +55,6 @@ contract TempleTest is Test {
         vm.deal(address(this), 10 ** 24);
         IWCanto(address(wcanto)).deposit{value: 10 ** 19}();
         wcanto.approve(address(router), type(uint256).max);
-        note.approve(address(router), type(uint256).max);
         yin.approve(address(router), type(uint256).max);
         yang.approve(address(router), type(uint256).max);
         IBaseV1Router(router).addLiquidity(
@@ -76,7 +69,7 @@ contract TempleTest is Test {
         );
         IBaseV1Router(router).addLiquidity(
             address(yin),
-            address(note),
+            address(wcanto),
             10 ** 23,
             10 ** 18,
             0,
@@ -92,7 +85,6 @@ contract TempleTest is Test {
             yin,
             yang,
             zen,
-            address(note),
             router
         );
         yin.setTemple(address(temple));
@@ -126,7 +118,7 @@ contract TempleTest is Test {
         vm.roll(block.number + 1);
         garden.withdraw(0, 0);
 
-        address voteToken = address(note);
+        address voteToken = address(wcanto);
 
         temple.voteForNextTarget(voteToken, voteAmount);
 
@@ -167,7 +159,7 @@ contract TempleTest is Test {
             garden.zen().balanceOf(otherUser)
         );
 
-        address voteToken = address(note);
+        address voteToken = address(wcanto);
 
         temple.voteForNextTarget(voteToken, voteAmount);
         vm.prank(otherUser);
@@ -181,12 +173,12 @@ contract TempleTest is Test {
         );
         temple.harvest();
 
-        uint256 balanceBefore = note.balanceOf(address(this));
-        uint256 balanceContractBefore = note.balanceOf(address(temple));
+        uint256 balanceBefore = wcanto.balanceOf(address(this));
+        uint256 balanceContractBefore = wcanto.balanceOf(address(temple));
         temple.claimAllVoterShares();
 
         assertEq(
-            note.balanceOf(address(this)),
+            wcanto.balanceOf(address(this)),
             balanceBefore +
                 (balanceContractBefore * voteAmount) /
                 rewardsPerBlock
@@ -221,7 +213,7 @@ contract TempleTest is Test {
         vm.prank(otherUser);
         garden.withdraw(0, 0);
 
-        address voteToken = address(note);
+        address voteToken = address(wcanto);
 
         temple.voteForNextTarget(voteToken, voteAmount);
         vm.prank(otherUser);
@@ -232,13 +224,13 @@ contract TempleTest is Test {
 
         vm.startPrank(otherUser);
         temple.updateUserAccount(1);
-        uint256 balanceBefore = note.balanceOf(otherUser);
-        uint256 balanceContractBefore = note.balanceOf(address(temple));
+        uint256 balanceBefore = wcanto.balanceOf(otherUser);
+        uint256 balanceContractBefore = wcanto.balanceOf(address(temple));
         temple.claimAllVoterShares();
         vm.stopPrank();
 
         assertEq(
-            note.balanceOf(otherUser),
+            wcanto.balanceOf(otherUser),
             balanceBefore +
                 (balanceContractBefore * (rewardsPerBlock - voteAmount)) /
                 rewardsPerBlock
@@ -258,7 +250,7 @@ contract TempleTest is Test {
         garden.deposit(0, voteAmount);
 
         vm.roll(block.number + 1);
-        address voteToken = address(note);
+        address voteToken = address(wcanto);
         garden.withdraw(0, 0);
         temple.voteForNextTarget(voteToken, voteAmount);
 

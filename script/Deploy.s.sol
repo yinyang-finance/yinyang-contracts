@@ -45,7 +45,7 @@ contract DeployScript is Script {
             "YIN",
             500,
             router,
-            address(note),
+            address(wcanto),
             minAmountToSell
         );
         YinYang yang = new YinYang(
@@ -58,7 +58,7 @@ contract DeployScript is Script {
             minAmountToSell
         );
         Zen zen = new Zen(tx.origin);
-        zen.setPairs(router, address(note));
+        zen.setPairs(router);
 
         BasicDistributor yinDistributor = new BasicDistributor(
             tx.origin,
@@ -85,7 +85,6 @@ contract DeployScript is Script {
             yin,
             yang,
             zen,
-            address(note),
             router
         );
         yin.setTemple(address(temple));
@@ -104,8 +103,7 @@ contract DeployScript is Script {
         // Create pools
         garden.add(1, ERC20(yin.pair()), true, startBlock);
         garden.add(1, ERC20(yang.pair()), true, startBlock);
-        garden.add(10, ERC20(zen.zenNotePair()), true, startBlock);
-        garden.add(10, ERC20(zen.zenWCantoPair()), true, startBlock);
+        garden.add(10, ERC20(zen.pair()), true, startBlock);
 
         yinDistributor.add(10, ERC20(address(yang)), true, startBlock);
         yinDistributor.add(5, ERC20(address(cantoShib)), true, startBlock);
@@ -125,7 +123,7 @@ contract DeployScript is Script {
         console.log('export const YANG_ADDRESS = "%s";', address(yang));
         console.log('export const ZEN_ADDRESS = "%s";', address(zen));
         console.log(
-            'export const PAIR_YIN_NOTE_ADDRESS = "%s";',
+            'export const PAIR_YIN_WCANTO_ADDRESS = "%s";',
             address(yin.pair())
         );
         console.log(
@@ -133,12 +131,8 @@ contract DeployScript is Script {
             address(yang.pair())
         );
         console.log(
-            'export const PAIR_ZEN_NOTE_ADDRESS = "%s";',
-            address(zen.zenNotePair())
-        );
-        console.log(
             'export const PAIR_ZEN_WCANTO_ADDRESS = "%s";',
-            address(zen.zenWCantoPair())
+            address(zen.pair())
         );
         console.log(
             'export const YIN_DISTRIBUTOR_ADDRESS = "%s";',
