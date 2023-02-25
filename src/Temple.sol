@@ -58,7 +58,6 @@ contract Temple is Owned, TurnstileRegisterEntry {
     address public currentTarget = address(0);
     mapping(address => uint256) public tokenIsProposed;
     address[] public proposedTokens;
-    uint256 public numberProposedTokens;
     /// @notice Amount of voices for each proposed token at a given epoch
     mapping(uint256 => mapping(address => uint256)) public voices;
     /// @notice Total number of shares that voted for an epoch
@@ -190,7 +189,10 @@ contract Temple is Owned, TurnstileRegisterEntry {
         }
 
         // Market sell Yin Yang for the target
-        if (yin.balanceOf(address(this)) > 0) {
+        if (
+            yin.balanceOf(address(this)) > 0 &&
+            IBaseV1Pair(yin.pair()).totalSupply() > 0
+        ) {
             address[] memory routes = new address[](3);
             routes[0] = address(yin);
             routes[1] = address(note);
@@ -206,7 +208,10 @@ contract Temple is Owned, TurnstileRegisterEntry {
                 );
         }
 
-        if (yang.balanceOf(address(this)) > 0) {
+        if (
+            yang.balanceOf(address(this)) > 0 &&
+            IBaseV1Pair(yang.pair()).totalSupply() > 0
+        ) {
             address[] memory routes = new address[](2);
             routes[0] = address(yang);
             routes[1] = address(wcanto);
