@@ -7,11 +7,11 @@ import "../src/Temple.sol";
 import "../src/BasicDistributor.sol";
 
 contract DeployScript is Script {
-    uint256 initialSupply = 10 ** 6 * 10 ** 18;
+    uint256 initialSupply = 10 ** 7 * 10 ** 18;
     uint256 minAmountToSell = 10 * 10 ** 18;
     uint256 blockTime = 6;
     uint256 blockPerDay = 86400 / blockTime;
-    uint256 rewardPerDay = 10 ** 22;
+    uint256 rewardPerDay = 10 ** 23;
     uint256 rewardsPerBlock = rewardPerDay / blockPerDay;
     uint256 epochPeriod = 600;
     uint256 startBlock;
@@ -21,7 +21,7 @@ contract DeployScript is Script {
     address cantoInu = address(0x7264610A66EcA758A8ce95CF11Ff5741E1fd0455);
     address cantoShib = address(0xA025ced4aab666c1bbBFd5A224816705b438E50B);
     ERC20 wcanto;
-    ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
+    // ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
     Garden garden;
     Temple temple;
 
@@ -32,8 +32,7 @@ contract DeployScript is Script {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
-        // TODO: Set a date
-        startBlock = block.number;
+        startBlock = 3125000;
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -87,7 +86,9 @@ contract DeployScript is Script {
             zen,
             router
         );
+        yin.excludeAccount(address(temple));
         yin.setTemple(address(temple));
+        yang.excludeAccount(address(temple));
         yang.setTemple(address(temple));
         zen.transferOwnership(address(temple));
 
@@ -108,7 +109,7 @@ contract DeployScript is Script {
         yinDistributor.add(10, ERC20(address(yang)), true, startBlock);
         yinDistributor.add(5, ERC20(address(cantoShib)), true, startBlock);
         yinDistributor.add(3, ERC20(address(eth)), true, startBlock);
-        yinDistributor.add(1, ERC20(address(note)), true, startBlock);
+        yinDistributor.add(1, ERC20(address(wcanto)), true, startBlock);
         yangDistributor.add(10, ERC20(address(yin)), true, startBlock);
         yangDistributor.add(5, ERC20(address(cantoInu)), true, startBlock);
         yangDistributor.add(3, ERC20(address(atom)), true, startBlock);
@@ -118,9 +119,17 @@ contract DeployScript is Script {
 
         console.log('export const NULL_ADDRESS = "%s";', address(0));
         console.log('export const WCANTO_ADDRESS = "%s";', address(wcanto));
-        console.log('export const NOTE_ADDRESS = "%s";', address(note));
+        // console.log('export const NOTE_ADDRESS = "%s";', address(note));
         console.log('export const YIN_ADDRESS = "%s";', address(yin));
+        console.log(
+            'export const YIN_ADDER_ADDRESS = "%s";',
+            address(yin.liquidityAdder())
+        );
         console.log('export const YANG_ADDRESS = "%s";', address(yang));
+        console.log(
+            'export const YANG_ADDER_ADDRESS = "%s";',
+            address(yang.liquidityAdder())
+        );
         console.log('export const ZEN_ADDRESS = "%s";', address(zen));
         console.log(
             'export const PAIR_YIN_WCANTO_ADDRESS = "%s";',

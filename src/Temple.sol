@@ -64,11 +64,12 @@ contract Temple is Owned, TurnstileRegisterEntry {
     mapping(address => address) public votersToken;
     mapping(address => uint256) public votersEpoch;
 
+    /// @notice The number of claimable shares for each token that won a vote
     mapping(address => AccountInfo) public tokenAccounts;
     mapping(address => mapping(address => uint256)) public userAccounts;
     mapping(uint256 => mapping(address => uint256)) public participations;
-    mapping(address => address[]) internal userTokens;
-    mapping(address => uint256) internal lastUpdate;
+    mapping(address => address[]) public userTokens;
+    mapping(address => uint256) public lastUpdate;
 
     event Withdraw(address indexed user, address token, uint256 amount);
     event Harvest(address indexed user, uint256 amount);
@@ -326,7 +327,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
 
     function pendingVoterShares(
         address user
-    ) internal view returns (ShareInfo[] memory) {
+    ) public view returns (ShareInfo[] memory) {
         ShareInfo[] memory s = new ShareInfo[](userTokens[user].length);
         for (uint256 i = 0; i < userTokens[user].length; i++) {
             address token = userTokens[user][i];

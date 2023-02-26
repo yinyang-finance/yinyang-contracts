@@ -12,14 +12,15 @@ contract YinYangTest is Test {
     uint16 transferFee = 700;
     uint256 thresholdAmount = 10 ** 19;
     address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
+    address sender = address(42);
+    address recipient = address(43);
+    address temple = address(44);
 
     function setUp() public {
         vm.createSelectFork(vm.rpcUrl("mainnet"));
     }
 
     function testYinYangTransfer(
-        address sender,
-        address recipient,
         uint256 transferAmount,
         bool excludeSender,
         bool excludeRecipient
@@ -27,10 +28,8 @@ contract YinYangTest is Test {
         uint256 initialSupply = 10 ** 27;
         vm.assume(transferAmount >= transferFee);
         vm.assume(transferAmount < initialSupply / 2);
-        vm.assume(sender != address(0));
-        vm.assume(recipient != address(0));
-        vm.assume(sender != recipient);
 
+        // Mint the initial supply
         quote = new SimpleERC20();
         token = new YinYang(
             address(this),
@@ -44,6 +43,8 @@ contract YinYangTest is Test {
         token.excludeAccount(address(this));
         token.excludeAccount(sender);
         token.initialize(address(this), initialSupply);
+        token.excludeAccount(temple);
+        token.setTemple(temple);
         token.transfer(sender, transferAmount);
 
         assertEq(
@@ -62,7 +63,14 @@ contract YinYangTest is Test {
         uint256 supplyBefore = token.totalSupply();
         token.transfer(recipient, transferAmount);
 
-        assertGe(supplyBefore, token.totalSupply());
+        assertEq(
+            token.balanceOf(temple),
+            (transferAmount * transferFee) / 30000
+        );
+        assertLe(
+            token.totalSupply(),
+            supplyBefore - (transferAmount * (transferFee / 6)) / 10000
+        );
         assertGe(token.balanceOf(sender), 0);
         assertGe(
             token.balanceOf(recipient),

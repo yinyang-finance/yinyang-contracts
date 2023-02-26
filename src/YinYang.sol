@@ -41,12 +41,14 @@ contract YinYang is ReflectToken {
             quote
         );
         liquidityAdder = new LiquidityAdder(router, pair, address(this), quote);
+        _excludeAccount(address(liquidityAdder));
         mintInitialSupply(recipient, initialSupply);
 
         initialized = true;
     }
 
     function setTemple(address _temple) external onlyOwner {
+        require(_isExcluded[_temple], "included temple");
         temple = _temple;
     }
 
