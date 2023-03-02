@@ -21,7 +21,6 @@ contract DeployScript is Script {
     address cantoInu = address(0x7264610A66EcA758A8ce95CF11Ff5741E1fd0455);
     address cantoShib = address(0xA025ced4aab666c1bbBFd5A224816705b438E50B);
     ERC20 wcanto;
-    // ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
     Garden garden;
     Temple temple;
 
@@ -32,7 +31,7 @@ contract DeployScript is Script {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
-        startBlock = 3125000;
+        startBlock = 3180000;
 
         vm.startBroadcast(deployerPrivateKey);
 
