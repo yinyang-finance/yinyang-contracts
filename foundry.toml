@@ -4,7 +4,9 @@ out = 'out'
 libs = ['lib']
 gas_reports = ["*"]
 [rpc_endpoints]
-mainnet = "https://canto.slingshot.finance"
+test = "https://eth-mainnet.g.alchemy.com/v2/7IoM-e_r1o69S1RrwdWc4jh_R3K5NHzC"
+test_canto = "https://mainnode.plexnode.org:8545"
+canto = "https://canto.slingshot.finance"
 canto_mainnet2 = "https://canto.evm.chandrastation.com"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

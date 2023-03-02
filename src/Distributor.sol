@@ -32,6 +32,8 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     // The block number when reward mining starts.
     uint256 public startBlock;
 
+    uint256 immutable PRECISION_FACTOR = 1e18;
+
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event EmergencyWithdraw(
@@ -46,7 +48,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
         uint256 _rewardsPerBlock,
         uint256 _startBlock
     ) Owned(_owner) TurnstileRegisterEntry() {
-        if (_startBlock < block.number) {
+        if (_startBlock <= block.number) {
             _startBlock = block.number;
         } else {
             startBlock = _startBlock;
@@ -71,7 +73,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     function massUpdatePools() public {
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
-            updatePool(pid);
+            _updatePool(pid);
         }
     }
 
@@ -133,7 +135,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     }
 
     // Update reward variables of the given pool to be up-to-date.
-    function updatePool(uint256 _pid) public {
+    function _updatePool(uint256 _pid) internal {
         PoolInfo storage pool = poolInfo[_pid];
         if (block.number <= pool.lastRewardBlock) {
             return;
@@ -144,22 +146,18 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
             return;
         }
         uint256 multiplier = block.number - pool.lastRewardBlock;
-        uint256 zenReward = (multiplier *
-            (rewardsPerBlock) *
-            (pool.allocPoint)) / (totalAllocPoint);
-        pool.accRewardsPerShare =
-            pool.accRewardsPerShare +
-            ((zenReward * 1e12) / lpSupply);
+        uint256 rewards = multiplier * rewardsPerBlock;
+        pool.accRewardsPerShare += (rewards * PRECISION_FACTOR) / lpSupply;
         pool.lastRewardBlock = block.number;
     }
 
     function deposit(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        updatePool(_pid);
+        _updatePool(_pid);
         if (user.amount > 0) {
             uint256 pending = ((user.amount * (pool.accRewardsPerShare)) /
-                1e12) - (user.rewardDebt);
+                PRECISION_FACTOR) - user.rewardDebt;
             if (pending > 0) {
                 _payRewards(msg.sender, pending);
             }
@@ -168,7 +166,9 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
             pool.lpToken.transferFrom(msg.sender, address(this), _amount);
             user.amount = user.amount + _amount;
         }
-        user.rewardDebt = (user.amount * pool.accRewardsPerShare) / 1e12;
+        user.rewardDebt =
+            (user.amount * pool.accRewardsPerShare) /
+            PRECISION_FACTOR;
         emit Deposit(msg.sender, _pid, _amount);
     }
 
@@ -177,9 +177,9 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
-        updatePool(_pid);
-        uint256 pending = ((user.amount * pool.accRewardsPerShare) / 1e12) -
-            (user.rewardDebt);
+        _updatePool(_pid);
+        uint256 pending = ((user.amount * pool.accRewardsPerShare) /
+            PRECISION_FACTOR) - (user.rewardDebt);
         if (pending > 0) {
             _payRewards(msg.sender, pending);
         }
@@ -187,7 +187,9 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
             user.amount = user.amount - _amount;
             pool.lpToken.transfer(address(msg.sender), _amount);
         }
-        user.rewardDebt = (user.amount * pool.accRewardsPerShare) / 1e12;
+        user.rewardDebt =
+            (user.amount * pool.accRewardsPerShare) /
+            PRECISION_FACTOR;
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
@@ -215,10 +217,12 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
             uint256 rewards = (multiplier * rewardsPerBlock * pool.allocPoint) /
                 totalAllocPoint;
             accRewardsPerShare = (accRewardsPerShare +
-                (rewards * (1e12)) /
+                (rewards * (PRECISION_FACTOR)) /
                 (lpSupply));
         }
-        return ((user.amount * accRewardsPerShare) / 1e12) - user.rewardDebt;
+        return
+            ((user.amount * accRewardsPerShare) / PRECISION_FACTOR) -
+            user.rewardDebt;
     }
 
     function _payRewards(address recipient, uint256 amount) internal virtual {}

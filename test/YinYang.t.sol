@@ -5,19 +5,20 @@ import "forge-std/Test.sol";
 
 import "../src/YinYang.sol";
 import "./SimpleERC20.sol";
+import "./BaseTest.sol";
 
-contract YinYangTest is Test {
+contract YinYangTest is BaseTest {
     YinYang public token;
     ERC20 public quote;
     uint16 transferFee = 700;
     uint256 thresholdAmount = 10 ** 19;
-    address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
+    // address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
     address sender = address(42);
     address recipient = address(43);
     address temple = address(44);
 
-    function setUp() public {
-        vm.createSelectFork(vm.rpcUrl("mainnet"));
+    function setUp() public override {
+        super.setUp();
     }
 
     function testYinYangTransfer(

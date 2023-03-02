@@ -102,18 +102,18 @@ contract DeployScript is Script {
         temple.setGarden(garden);
 
         // Create pools
-        garden.add(1, ERC20(yin.pair()), true, startBlock);
-        garden.add(1, ERC20(yang.pair()), true, startBlock);
-        garden.add(10, ERC20(zen.pair()), true, startBlock);
+        garden.add(1, ERC20(yin.pair()), true, 0);
+        garden.add(1, ERC20(yang.pair()), true, 0);
+        garden.add(10, ERC20(zen.pair()), true, 0);
 
-        yinDistributor.add(10, ERC20(address(yang)), true, startBlock);
-        yinDistributor.add(5, ERC20(address(cantoShib)), true, startBlock);
-        yinDistributor.add(3, ERC20(address(eth)), true, startBlock);
-        yinDistributor.add(1, ERC20(address(wcanto)), true, startBlock);
-        yangDistributor.add(10, ERC20(address(yin)), true, startBlock);
-        yangDistributor.add(5, ERC20(address(cantoInu)), true, startBlock);
-        yangDistributor.add(3, ERC20(address(atom)), true, startBlock);
-        yangDistributor.add(1, ERC20(address(wcanto)), true, startBlock);
+        yinDistributor.add(10, ERC20(address(yang)), true, 0);
+        yinDistributor.add(5, ERC20(address(cantoShib)), true, 0);
+        yinDistributor.add(3, ERC20(address(eth)), true, 0);
+        yinDistributor.add(1, ERC20(address(wcanto)), true, 0);
+        yangDistributor.add(10, ERC20(address(yin)), true, 0);
+        yangDistributor.add(5, ERC20(address(cantoInu)), true, 0);
+        yangDistributor.add(3, ERC20(address(atom)), true, 0);
+        yangDistributor.add(1, ERC20(address(wcanto)), true, 0);
 
         vm.stopBroadcast();
 

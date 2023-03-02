@@ -7,8 +7,9 @@ interface Turnstile {
 
 contract TurnstileRegisterEntry {
     address constant TURNSTILE = 0xEcf044C5B4b867CFda001101c617eCd347095B44;
+    uint256 immutable turnstileTokenId;
 
     constructor() {
-        Turnstile(TURNSTILE).register(tx.origin);
+        turnstileTokenId = Turnstile(TURNSTILE).register(tx.origin);
     }
 }
