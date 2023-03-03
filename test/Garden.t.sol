@@ -17,7 +17,7 @@ contract GardenTest is Test {
     ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
 
     function setUp() public {
-        wcanto = ERC20(IBaseV1Router(router).WETH());
+        wcanto = ERC20(IBaseV1Router(router).weth());
 
         vm.deal(address(this), 100 ether);
         IWCanto(address(wcanto)).deposit{value: 50 ether}();

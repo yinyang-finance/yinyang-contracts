@@ -16,19 +16,10 @@ contract YinYangTest is BaseTest {
     address sender = address(42);
     address recipient = address(43);
     address temple = address(44);
+    uint256 initialSupply = 10 ** 27;
 
     function setUp() public override {
         super.setUp();
-    }
-
-    function testYinYangTransfer(
-        uint256 transferAmount,
-        bool excludeSender,
-        bool excludeRecipient
-    ) public {
-        uint256 initialSupply = 10 ** 27;
-        vm.assume(transferAmount >= transferFee);
-        vm.assume(transferAmount < initialSupply / 2);
 
         // Mint the initial supply
         quote = new SimpleERC20();
@@ -46,6 +37,14 @@ contract YinYangTest is BaseTest {
         token.initialize(address(this), initialSupply);
         token.excludeAccount(temple);
         token.setTemple(temple);
+    }
+
+    function testYinYangTransferFromExcludedToIncluded(
+        uint256 transferAmount
+    ) public {
+        vm.assume(transferAmount >= transferFee);
+        vm.assume(transferAmount < initialSupply / 2);
+
         token.transfer(sender, transferAmount);
 
         assertEq(
@@ -53,24 +52,67 @@ contract YinYangTest is BaseTest {
             initialSupply - transferAmount
         );
         assertEq(token.balanceOf(sender), transferAmount);
-        if (!excludeSender) {
-            token.includeAccount(sender);
-        }
-        if (excludeRecipient) {
-            token.excludeAccount(recipient);
-        }
 
-        vm.prank(sender);
         uint256 supplyBefore = token.totalSupply();
+        vm.prank(sender);
         token.transfer(recipient, transferAmount);
 
-        assertEq(
+        assertLe(
             token.balanceOf(temple),
-            (transferAmount * transferFee) / 30000
+            (transferAmount * 2 * transferFee) / 50000
         );
         assertLe(
             token.totalSupply(),
-            supplyBefore - (transferAmount * (transferFee / 6)) / 10000
+            supplyBefore - (transferAmount * (transferFee / 5)) / 10000
+        );
+        assertEq(token.balanceOf(sender), 0);
+        assertGe(
+            token.balanceOf(recipient),
+            transferAmount - (transferAmount * transferFee) / 10000
+        );
+
+        if ((transferAmount * transferFee) / 10000 >= thresholdAmount) {
+            // Liquidity has been added
+            assertGe(
+                IBaseV1Pair(
+                    IBaseV1Router(router).pairFor(
+                        address(token),
+                        address(quote),
+                        false
+                    )
+                ).totalSupply(),
+                0
+            );
+        }
+    }
+
+    function testYinYangTransferFromIncludedToIncluded(
+        uint256 transferAmount
+    ) public {
+        vm.assume(transferAmount >= transferFee);
+        vm.assume(transferAmount < initialSupply / 2);
+
+        token.transfer(sender, transferAmount);
+
+        assertEq(
+            token.balanceOf(address(this)),
+            initialSupply - transferAmount
+        );
+        assertEq(token.balanceOf(sender), transferAmount);
+
+        token.includeAccount(sender);
+
+        uint256 supplyBefore = token.totalSupply();
+        vm.prank(sender);
+        token.transfer(recipient, transferAmount);
+
+        assertLe(
+            token.balanceOf(temple),
+            (transferAmount * 2 * transferFee) / 50000
+        );
+        assertLe(
+            token.totalSupply(),
+            supplyBefore - (transferAmount * (transferFee / 5)) / 10000
         );
         assertGe(token.balanceOf(sender), 0);
         assertGe(
@@ -82,9 +124,99 @@ contract YinYangTest is BaseTest {
             // Liquidity has been added
             assertGe(
                 IBaseV1Pair(
-                    IBaseV1Factory(IBaseV1Router(router).factory()).getPair(
+                    IBaseV1Router(router).pairFor(
                         address(token),
-                        address(quote)
+                        address(quote),
+                        false
+                    )
+                ).totalSupply(),
+                0
+            );
+        }
+    }
+
+    function testYinYangTransferFromIncludedToExcluded(
+        uint256 transferAmount
+    ) public {
+        vm.assume(transferAmount >= transferFee);
+        vm.assume(transferAmount < initialSupply / 2);
+
+        token.transfer(sender, transferAmount);
+
+        assertEq(
+            token.balanceOf(address(this)),
+            initialSupply - transferAmount
+        );
+        assertEq(token.balanceOf(sender), transferAmount);
+
+        token.includeAccount(sender);
+        token.excludeAccount(recipient);
+
+        uint256 supplyBefore = token.totalSupply();
+        vm.prank(sender);
+        token.transfer(recipient, transferAmount);
+
+        assertLe(
+            token.balanceOf(temple),
+            (transferAmount * 2 * transferFee) / 50000
+        );
+        assertLe(
+            token.totalSupply(),
+            supplyBefore - (transferAmount * (transferFee / 5)) / 10000
+        );
+        assertGe(token.balanceOf(sender), 0);
+        assertGe(
+            token.balanceOf(recipient),
+            transferAmount - (transferAmount * transferFee) / 10000
+        );
+
+        if ((transferAmount * transferFee) / 10000 >= thresholdAmount) {
+            // Liquidity has been added
+            assertGe(
+                IBaseV1Pair(
+                    IBaseV1Router(router).pairFor(
+                        address(token),
+                        address(quote),
+                        false
+                    )
+                ).totalSupply(),
+                0
+            );
+        }
+    }
+
+    function testYinYangTransferFromExcludedToExcluded(
+        uint256 transferAmount
+    ) public {
+        vm.assume(transferAmount >= transferFee);
+        vm.assume(transferAmount < initialSupply / 2);
+
+        token.transfer(sender, transferAmount);
+
+        assertEq(
+            token.balanceOf(address(this)),
+            initialSupply - transferAmount
+        );
+        assertEq(token.balanceOf(sender), transferAmount);
+        token.excludeAccount(recipient);
+
+        uint256 supplyBefore = token.totalSupply();
+        vm.prank(sender);
+        token.transfer(recipient, transferAmount);
+
+        assertEq(token.balanceOf(temple), 0);
+        assertLe(token.totalSupply(), supplyBefore);
+        assertEq(token.balanceOf(sender), 0);
+        assertEq(token.balanceOf(recipient), transferAmount);
+
+        if ((transferAmount * transferFee) / 10000 >= thresholdAmount) {
+            // Liquidity has been added
+            assertGe(
+                IBaseV1Pair(
+                    IBaseV1Router(router).pairFor(
+                        address(token),
+                        address(quote),
+                        false
                     )
                 ).totalSupply(),
                 0

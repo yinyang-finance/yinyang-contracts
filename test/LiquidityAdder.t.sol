@@ -27,6 +27,7 @@ contract LiquidityAdderTest is Test {
         IBaseV1Router(router).addLiquidity(
             address(token),
             address(quote),
+            false,
             10 ** 18,
             10 ** 18,
             0,
@@ -36,29 +37,24 @@ contract LiquidityAdderTest is Test {
         );
         adder = new LiquidityAdder(
             router,
-            IBaseV1Factory(IBaseV1Router(router).factory()).getPair(
+            IBaseV1Router(router).pairFor(
                 address(quote),
-                address(token)
+                address(token),
+                false
             ),
             address(token),
             address(quote)
         );
 
         token.transfer(address(adder), amount);
-        (uint112 r0before, uint112 r1before, ) = IBaseV1Pair(
-            IBaseV1Factory(IBaseV1Router(router).factory()).getPair(
-                address(quote),
-                address(token)
-            )
+        (uint256 r0before, uint256 r1before, ) = IBaseV1Pair(
+            IBaseV1Router(router).pairFor(address(quote), address(token), false)
         ).getReserves();
 
         adder.addLiquidity();
 
-        (uint112 r0after, uint112 r1after, ) = IBaseV1Pair(
-            IBaseV1Factory(IBaseV1Router(router).factory()).getPair(
-                address(quote),
-                address(token)
-            )
+        (uint256 r0after, uint256 r1after, ) = IBaseV1Pair(
+            IBaseV1Router(router).pairFor(address(quote), address(token), false)
         ).getReserves();
 
         if (uint160(address(quote)) > uint160(address(token))) {

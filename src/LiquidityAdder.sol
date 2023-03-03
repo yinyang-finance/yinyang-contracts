@@ -47,19 +47,20 @@ contract LiquidityAdder is TurnstileRegisterEntry {
             routes[0] = address(token);
             routes[1] = address(quote);
 
-            router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-                tokenAmountToBeSwapped,
-                0,
-                routes,
-                address(this),
-                block.timestamp + 360
+            Router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+                address(router),
+                address(token),
+                address(quote),
+                tokenAmountToBeSwapped
             );
 
             uint256 newBalance = quote.balanceOf(address(this));
 
+            pair.sync();
             router.addLiquidity(
                 address(token),
                 address(quote),
+                false,
                 otherHalf,
                 newBalance,
                 0,

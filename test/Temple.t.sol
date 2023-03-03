@@ -19,7 +19,7 @@ contract TempleTest is BaseTest {
     function setUp() public override {
         super.setUp();
 
-        wcanto = ERC20(IBaseV1Router(router).WETH());
+        wcanto = ERC20(IBaseV1Router(router).weth());
 
         vm.deal(address(this), 100 ether);
         IWCanto(address(wcanto)).deposit{value: 50 ether}();
@@ -58,6 +58,7 @@ contract TempleTest is BaseTest {
         IBaseV1Router(router).addLiquidity(
             address(yang),
             address(wcanto),
+            false,
             10 ** 23,
             10 ** 18,
             0,
@@ -68,6 +69,7 @@ contract TempleTest is BaseTest {
         IBaseV1Router(router).addLiquidity(
             address(yin),
             address(wcanto),
+            false,
             10 ** 23,
             10 ** 18,
             0,

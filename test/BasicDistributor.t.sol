@@ -20,7 +20,7 @@ contract BasicDistributorTest is BaseTest {
     function setUp() public override {
         super.setUp();
         token = new SimpleERC20();
-        wcanto = ERC20(IBaseV1Router(router).WETH());
+        wcanto = ERC20(IBaseV1Router(router).weth());
     }
 
     function testBasicDistributorAddPool() public {

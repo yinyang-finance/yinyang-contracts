@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 
 import "forge-std/Test.sol";
 
+import "./BaseTest.sol";
 import "../src/ReflectToken.sol";
 
 contract Reflect is ReflectToken {
@@ -15,11 +16,12 @@ contract Reflect is ReflectToken {
     ) ReflectToken(_owner, _name, _symbol, _decimals, totalTransferFee) {}
 }
 
-contract ReflectTokenTest is Test {
+contract ReflectTokenTest is BaseTest {
     Reflect public token;
     uint16 transferFee = 500;
 
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         vm.createSelectFork(vm.rpcUrl("mainnet"));
     }
 

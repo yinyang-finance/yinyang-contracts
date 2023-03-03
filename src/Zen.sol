@@ -14,11 +14,12 @@ contract Zen is ERC20, Owned, TurnstileRegisterEntry {
     ) ERC20("Zen", "ZEN", 18) Owned(_owner) TurnstileRegisterEntry() {}
 
     function setPairs(address router) external onlyOwner {
-        address wcanto = IBaseV1Router(router).WETH();
+        address wcanto = IBaseV1Router(router).weth();
 
         pair = IBaseV1Factory(IBaseV1Router(router).factory()).createPair(
             address(this),
-            wcanto
+            wcanto,
+            false
         );
     }
 

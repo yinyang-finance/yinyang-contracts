@@ -38,7 +38,8 @@ contract YinYang is ReflectToken {
 
         pair = IBaseV1Factory(IBaseV1Router(router).factory()).createPair(
             address(this),
-            quote
+            quote,
+            false
         );
         liquidityAdder = new LiquidityAdder(router, pair, address(this), quote);
         _excludeAccount(address(liquidityAdder));
@@ -56,9 +57,9 @@ contract YinYang is ReflectToken {
         address sender,
         uint256 reflectionFee
     ) internal override returns (uint256) {
-        uint256 burn = reflectionFee / 6;
-        uint256 liquidity = reflectionFee / 6;
-        uint256 templeFee = reflectionFee / 3;
+        uint256 burn = reflectionFee / 5;
+        uint256 liquidity = reflectionFee / 5;
+        uint256 templeFee = (2 * reflectionFee) / 5;
 
         // Burn a share
         _tTotal = _tTotal - burn;
