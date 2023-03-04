@@ -102,7 +102,7 @@ contract TempleTest is BaseTest {
         );
         temple.setGarden(garden);
 
-        garden.add(1, wcanto, true, block.number);
+        garden.add(1, wcanto, 0, true, block.number);
         wcanto.approve(address(garden), type(uint256).max);
 
         yin.transfer(address(temple), 10 ** 16);

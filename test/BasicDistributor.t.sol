@@ -23,7 +23,9 @@ contract BasicDistributorTest is BaseTest {
         wcanto = ERC20(IBaseV1Router(router).weth());
     }
 
-    function testBasicDistributorAddPool() public {
+    function testBasicDistributorAddPool(uint16 depositFee) public {
+        vm.assume(depositFee < 10000);
+
         basicDistributor = new BasicDistributor(
             address(this),
             rewardsPerBlock,
@@ -32,20 +34,57 @@ contract BasicDistributorTest is BaseTest {
         );
 
         uint256 allocPoint = 1;
-        basicDistributor.add(1, wcanto, true, 0);
+        basicDistributor.add(1, wcanto, depositFee, true, 0);
 
         assertEq(basicDistributor.poolLength(), 1);
         (
             ERC20 _lpToken,
+            uint16 _depositFee,
             uint256 _allocPoint,
             uint256 _lastRewardBlock,
             uint256 _accRewardsPerShare
         ) = basicDistributor.poolInfo(0);
 
         assertEq(address(_lpToken), address(wcanto));
+        assertEq(_depositFee, depositFee);
         assertEq(_allocPoint, allocPoint);
         assertEq(_lastRewardBlock, block.number);
         assertEq(_accRewardsPerShare, 0);
+    }
+
+    function testBasicDistributorDepositWithFee(
+        uint16 depositFee,
+        uint256 amount
+    ) public {
+        vm.assume(depositFee < 10000);
+        vm.assume(amount < 2 ** 230);
+
+        basicDistributor = new BasicDistributor(
+            address(this),
+            rewardsPerBlock,
+            0,
+            token
+        );
+
+        basicDistributor.add(1, wcanto, depositFee, true, 0);
+        address user = address(123);
+        vm.startPrank(user);
+        vm.deal(user, amount);
+        IWCanto(address(wcanto)).deposit{value: amount}();
+        wcanto.approve(address(basicDistributor), amount);
+        basicDistributor.deposit(0, amount);
+
+        (uint256 userAmount, uint256 debt) = basicDistributor.userInfo(0, user);
+        assertEq(userAmount, amount - (amount * depositFee) / 10000);
+        assertEq(
+            wcanto.balanceOf(address(basicDistributor)),
+            amount - (amount * depositFee) / 10000
+        );
+        assertEq(
+            wcanto.balanceOf(address(this)),
+            (amount * depositFee) / 10000
+        );
+        assertEq(debt, 0);
     }
 
     function testBasicDistributorDeposit(uint256 amount) public {
@@ -58,7 +97,7 @@ contract BasicDistributorTest is BaseTest {
             token
         );
 
-        basicDistributor.add(1, wcanto, true, 0);
+        basicDistributor.add(1, wcanto, 0, true, 0);
         vm.deal(address(this), amount);
         IWCanto(address(wcanto)).deposit{value: amount}();
         wcanto.approve(address(basicDistributor), amount);
@@ -87,7 +126,7 @@ contract BasicDistributorTest is BaseTest {
             token.balanceOf(address(this))
         );
 
-        basicDistributor.add(1, wcanto, true, 0);
+        basicDistributor.add(1, wcanto, 0, true, 0);
         IWCanto(address(wcanto)).deposit{value: 1 ether}();
         wcanto.approve(address(basicDistributor), 1 ether);
         basicDistributor.deposit(0, 1 ether);
@@ -117,7 +156,7 @@ contract BasicDistributorTest is BaseTest {
             token.balanceOf(address(this))
         );
 
-        basicDistributor.add(1, wcanto, true, 0);
+        basicDistributor.add(1, wcanto, 0, true, 0);
 
         address a = address(123);
         vm.startPrank(a);
@@ -127,31 +166,55 @@ contract BasicDistributorTest is BaseTest {
         basicDistributor.deposit(0, 1 ether);
         vm.roll(block.number + blocks);
         basicDistributor.massUpdatePools();
-        {
-            (
-                ERC20 pi0,
-                uint256 pi1,
-                uint256 pi2,
-                uint256 pi3
-            ) = basicDistributor.poolInfo(0);
-            console.log(address(pi0), pi1, pi2, pi3);
-        }
-        {
-            (uint256 pi2, uint256 pi3) = basicDistributor.userInfo(0, a);
-            console.log(pi2, pi3);
-        }
         basicDistributor.withdraw(0, 0);
-        {
-            (
-                ERC20 pi0,
-                uint256 pi1,
-                uint256 pi2,
-                uint256 pi3
-            ) = basicDistributor.poolInfo(0);
-            console.log(address(pi0), pi1, pi2, pi3);
-        }
         vm.stopPrank();
 
         assertEq(token.balanceOf(a), rewards * blocks);
+    }
+
+    function testBasicDistributorWithdrawMultipleUsers(
+        uint256 rewards,
+        uint256 blocks,
+        uint8 users
+    ) public {
+        // Deposit a fixed amount, received fuzzed rewards
+        vm.assume(blocks > 1);
+        vm.assume(blocks < 1000);
+        vm.assume(rewards < 10 ** 27 / blocks);
+        vm.assume(users > 0);
+
+        basicDistributor = new BasicDistributor(
+            address(this),
+            rewards,
+            0,
+            token
+        );
+        token.transfer(
+            address(basicDistributor),
+            token.balanceOf(address(this))
+        );
+        basicDistributor.add(1, wcanto, 0, true, 0);
+
+        uint8 i = 0;
+        address a;
+        while (i < users) {
+            a = address(uint160(i + 1));
+            vm.startPrank(a);
+
+            vm.deal(a, 10 ether);
+            IWCanto(address(wcanto)).deposit{value: 2 ether}();
+            wcanto.approve(address(basicDistributor), type(uint256).max);
+
+            basicDistributor.deposit(0, 1 ether);
+
+            vm.stopPrank();
+            i += 1;
+        }
+
+        vm.roll(block.number + blocks);
+        vm.prank(a);
+        basicDistributor.withdraw(0, 0);
+
+        assertEq(token.balanceOf(a), (rewards * blocks) / users);
     }
 }

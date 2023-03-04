@@ -16,6 +16,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     // Info of each pool.
     struct PoolInfo {
         ERC20 lpToken;
+        uint16 depositFee;
         uint256 allocPoint;
         uint256 lastRewardBlock;
         uint256 accRewardsPerShare;
@@ -91,9 +92,11 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     function add(
         uint256 _allocPoint,
         ERC20 _lpToken,
+        uint16 _depositFee,
         bool _withUpdate,
         uint256 _lastRewardBlock
     ) public onlyOwner {
+        require(_depositFee < 10000, "bad fee");
         checkPoolDuplicate(_lpToken);
 
         if (_withUpdate) {
@@ -117,6 +120,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
         poolInfo.push(
             PoolInfo({
                 lpToken: _lpToken,
+                depositFee: _depositFee,
                 allocPoint: _allocPoint,
                 lastRewardBlock: _lastRewardBlock,
                 accRewardsPerShare: 0
@@ -163,8 +167,21 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
             }
         }
         if (_amount > 0) {
-            pool.lpToken.transferFrom(msg.sender, address(this), _amount);
-            user.amount = user.amount + _amount;
+            uint256 amount = _amount;
+            if (pool.depositFee > 0) {
+                uint256 fee = (_amount * pool.depositFee) / 10000;
+                pool.lpToken.transferFrom(msg.sender, owner, fee);
+                pool.lpToken.transferFrom(
+                    msg.sender,
+                    address(this),
+                    _amount - fee
+                );
+                amount = _amount - fee;
+            } else {
+                pool.lpToken.transferFrom(msg.sender, address(this), _amount);
+            }
+
+            user.amount = user.amount + amount;
         }
         user.rewardDebt =
             (user.amount * pool.accRewardsPerShare) /
@@ -177,6 +194,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
+        require(pool.depositFee != 10000, "full fee");
         _updatePool(_pid);
         uint256 pending = ((user.amount * pool.accRewardsPerShare) /
             PRECISION_FACTOR) - (user.rewardDebt);

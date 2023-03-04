@@ -14,6 +14,7 @@ contract DeployScript is Script {
     uint256 rewardPerDay = 10 ** 23;
     uint256 rewardsPerBlock = rewardPerDay / blockPerDay;
     uint256 epochPeriod = 2 * 86400;
+    uint16 depositFee = 500;
     uint256 startBlock;
     address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
     address eth = address(0x5FD55A1B9FC24967C4dB09C513C3BA0DFa7FF687);
@@ -101,20 +102,20 @@ contract DeployScript is Script {
         temple.setGarden(garden);
 
         // Create pools
-        garden.add(1, ERC20(yin.pair()), true, 0);
-        garden.add(1, ERC20(yang.pair()), true, 0);
-        garden.add(10, ERC20(zen.pair()), true, 0);
+        garden.add(1, ERC20(yin.pair()), 0, true, 0);
+        garden.add(1, ERC20(yang.pair()), 0, true, 0);
+        garden.add(10, ERC20(zen.pair()), 0, true, 0);
 
-        yinDistributor.add(40, ERC20(address(yang.pair())), true, 0);
-        yinDistributor.add(10, ERC20(address(yang)), true, 0);
-        yinDistributor.add(5, ERC20(address(cantoShib)), true, 0);
-        yinDistributor.add(3, ERC20(address(eth)), true, 0);
-        yinDistributor.add(1, ERC20(address(wcanto)), true, 0);
-        yangDistributor.add(40, ERC20(address(yin.pair())), true, 0);
-        yangDistributor.add(10, ERC20(address(yin)), true, 0);
-        yangDistributor.add(5, ERC20(address(cantoInu)), true, 0);
-        yangDistributor.add(3, ERC20(address(atom)), true, 0);
-        yangDistributor.add(1, ERC20(address(wcanto)), true, 0);
+        yinDistributor.add(40, ERC20(address(yang.pair())), 0, true, 0);
+        yinDistributor.add(10, ERC20(address(yang)), 0, true, 0);
+        yinDistributor.add(5, ERC20(address(cantoShib)), depositFee, true, 0);
+        yinDistributor.add(3, ERC20(address(eth)), depositFee, true, 0);
+        yinDistributor.add(1, ERC20(address(wcanto)), depositFee, true, 0);
+        yangDistributor.add(40, ERC20(address(yin.pair())), 0, true, 0);
+        yangDistributor.add(10, ERC20(address(yin)), 0, true, 0);
+        yangDistributor.add(5, ERC20(address(cantoInu)), depositFee, true, 0);
+        yangDistributor.add(3, ERC20(address(atom)), depositFee, true, 0);
+        yangDistributor.add(1, ERC20(address(wcanto)), depositFee, true, 0);
 
         vm.stopBroadcast();
 

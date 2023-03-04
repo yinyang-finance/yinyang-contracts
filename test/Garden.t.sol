@@ -66,11 +66,12 @@ contract GardenTest is Test {
 
     function testGardenAddPool() public {
         uint256 allocPoint = 1;
-        garden.add(1, wcanto, true, block.number);
+        garden.add(1, wcanto, 0, true, block.number);
 
         assertEq(garden.poolLength(), 1);
         (
             ERC20 _lpToken,
+            ,
             uint256 _allocPoint,
             uint256 _lastRewardBlock,
             uint256 _accRewardsPerShare
@@ -83,7 +84,7 @@ contract GardenTest is Test {
     }
 
     function testGardenDeposit() public {
-        garden.add(1, wcanto, true, block.number);
+        garden.add(1, wcanto, 0, true, block.number);
         wcanto.approve(address(garden), 1 ether);
         garden.deposit(0, 1 ether);
 
@@ -91,7 +92,7 @@ contract GardenTest is Test {
     }
 
     function testGardenWithdraw() public {
-        garden.add(1, wcanto, true, block.number);
+        garden.add(1, wcanto, 0, true, block.number);
         wcanto.approve(address(garden), 1 ether);
         garden.deposit(0, 1 ether);
         vm.roll(block.number + 1);
