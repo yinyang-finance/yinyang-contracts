@@ -2,21 +2,23 @@
 pragma solidity ^0.8.18;
 
 import "forge-std/Test.sol";
+import "./BaseTest.sol";
 import "../src/Temple.sol";
 import "../src/LiquidityAdder.sol";
 
-contract GardenTest is Test {
+contract GardenTest is BaseTest {
     Temple public temple;
     Garden public garden;
     ERC20 public quote;
     uint16 transferFee = 700;
     uint256 thresholdAmount = 10 ** 19;
     uint256 rewardsPerBlock = 10 ** 18;
-    address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
     ERC20 wcanto;
     ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
 
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
+
         wcanto = ERC20(IBaseV1Router(router).weth());
 
         vm.deal(address(this), 100 ether);

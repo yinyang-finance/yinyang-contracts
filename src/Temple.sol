@@ -7,11 +7,12 @@ import "./Zen.sol";
 import "./Garden.sol";
 import "./ISwap.sol";
 import "./TurnstileRegisterEntry.sol";
+import "./Router.sol";
 
 /// @author Dodecahedr0x
 /// @title The Temple of YinYang
 /// @notice This contract manages collected fees
-contract Temple is Owned, TurnstileRegisterEntry {
+contract Temple is Owned, TurnstileRegisterEntry, Router {
     struct VoterInfo {
         uint256 epoch;
         address token;
@@ -45,8 +46,6 @@ contract Temple is Owned, TurnstileRegisterEntry {
     uint256 public origin;
 
     address public wcanto;
-
-    IBaseV1Router public router;
 
     YinYang public yin;
     YinYang public yang;
@@ -82,7 +81,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
         YinYang _yang,
         Zen _zen,
         address _router
-    ) Owned(_owner) TurnstileRegisterEntry() {
+    ) Owned(_owner) TurnstileRegisterEntry() Router(_router) {
         epochDuration = _epochDuration;
         epochStart = start;
         origin = start;
@@ -93,7 +92,6 @@ contract Temple is Owned, TurnstileRegisterEntry {
         yang = _yang;
         zen = _zen;
         wcanto = IBaseV1Router(_router).weth();
-        router = IBaseV1Router(_router);
 
         yin.approve(_router, type(uint256).max);
         yang.approve(_router, type(uint256).max);
@@ -191,8 +189,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
             yin.balanceOf(address(this)) > 0 &&
             IBaseV1Pair(yin.pair()).totalSupply() > 0
         ) {
-            Router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-                address(router),
+            swapExactTokensForTokensSupportingFeeOnTransferTokens(
                 address(yin),
                 wcanto,
                 yin.balanceOf(address(this))
@@ -203,8 +200,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
             yang.balanceOf(address(this)) > 0 &&
             IBaseV1Pair(yang.pair()).totalSupply() > 0
         ) {
-            Router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-                address(router),
+            swapExactTokensForTokensSupportingFeeOnTransferTokens(
                 address(yang),
                 wcanto,
                 yang.balanceOf(address(this))
@@ -212,8 +208,7 @@ contract Temple is Owned, TurnstileRegisterEntry {
         }
 
         if (currentTarget != wcanto) {
-            Router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-                address(router),
+            swapExactTokensForTokensSupportingFeeOnTransferTokens(
                 wcanto,
                 currentTarget,
                 ERC20(wcanto).balanceOf(address(this))

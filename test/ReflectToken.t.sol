@@ -22,7 +22,6 @@ contract ReflectTokenTest is BaseTest {
 
     function setUp() public override {
         super.setUp();
-        vm.createSelectFork(vm.rpcUrl("mainnet"));
     }
 
     function testReflectTransferFromExcluded(

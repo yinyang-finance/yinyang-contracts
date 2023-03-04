@@ -2,23 +2,23 @@
 pragma solidity ^0.8.18;
 
 import "forge-std/Test.sol";
+import "./BaseTest.sol";
 import "../src/LiquidityAdder.sol";
 import "./SimpleERC20.sol";
 
-contract LiquidityAdderTest is Test {
+contract LiquidityAdderTest is BaseTest {
     LiquidityAdder public adder;
     ERC20 public quote;
     ERC20 public token;
     uint16 transferFee = 700;
-    address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
 
-    function setUp() public {
-        // vm.createSelectFork(vm.rpcUrl("canto_mainnet"));
+    function setUp() public override {
+        super.setUp();
     }
 
     function testLiquidityAdderAddLiquidity(uint256 amount) public {
         vm.assume(amount > 10 ** 5);
-        vm.assume(amount < 10 ** 25);
+        vm.assume(amount < 10 ** 27);
 
         quote = new SimpleERC20();
         token = new SimpleERC20();
@@ -51,7 +51,11 @@ contract LiquidityAdderTest is Test {
             IBaseV1Router(router).pairFor(address(quote), address(token), false)
         ).getReserves();
 
+        console.log(token.balanceOf(address(adder)));
+        console.log(quote.balanceOf(address(adder)));
         adder.addLiquidity();
+        console.log(token.balanceOf(address(adder)));
+        console.log(quote.balanceOf(address(adder)));
 
         (uint256 r0after, uint256 r1after, ) = IBaseV1Pair(
             IBaseV1Router(router).pairFor(address(quote), address(token), false)

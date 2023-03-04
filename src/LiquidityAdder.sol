@@ -5,9 +5,9 @@ import "solmate/tokens/ERC20.sol";
 import "./ReflectToken.sol";
 import "./TurnstileRegisterEntry.sol";
 import "./ISwap.sol";
+import "./Router.sol";
 
-contract LiquidityAdder is TurnstileRegisterEntry {
-    IBaseV1Router public router;
+contract LiquidityAdder is TurnstileRegisterEntry, Router {
     IBaseV1Pair public pair;
     ReflectToken public token;
     ERC20 public quote;
@@ -22,8 +22,7 @@ contract LiquidityAdder is TurnstileRegisterEntry {
         address _pair,
         address _token,
         address _quote
-    ) TurnstileRegisterEntry() {
-        router = IBaseV1Router(_router);
+    ) TurnstileRegisterEntry() Router(_router) {
         pair = IBaseV1Pair(_pair);
         token = ReflectToken(_token);
         quote = ERC20(_quote);
@@ -47,8 +46,7 @@ contract LiquidityAdder is TurnstileRegisterEntry {
             routes[0] = address(token);
             routes[1] = address(quote);
 
-            Router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-                address(router),
+            swapExactTokensForTokensSupportingFeeOnTransferTokens(
                 address(token),
                 address(quote),
                 tokenAmountToBeSwapped
