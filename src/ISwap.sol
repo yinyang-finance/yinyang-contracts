@@ -14,6 +14,10 @@ interface IWCanto {
 interface IBaseV1Pair {
     function totalSupply() external returns (uint256);
 
+    function token0() external returns (address);
+
+    function token1() external returns (address);
+
     function metadata()
         external
         view

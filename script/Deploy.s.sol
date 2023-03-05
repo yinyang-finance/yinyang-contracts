@@ -15,7 +15,7 @@ contract DeployScript is Script {
     uint256 rewardsPerBlock = rewardPerDay / blockPerDay;
     uint256 epochPeriod = 2 * 86400;
     uint16 depositFee = 500;
-    uint256 startBlock;
+    uint256 startBlock = 3180000;
     address router = address(0xe6e35e2AFfE85642eeE4a534d4370A689554133c);
     address eth = address(0x5FD55A1B9FC24967C4dB09C513C3BA0DFa7FF687);
     address atom = address(0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265);
@@ -31,8 +31,6 @@ contract DeployScript is Script {
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-
-        startBlock = 3180000;
 
         vm.startBroadcast(deployerPrivateKey);
 
