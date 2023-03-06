@@ -182,6 +182,7 @@ contract BasicDistributorTest is BaseTest {
         vm.assume(blocks < 1000);
         vm.assume(rewards < 10 ** 27 / blocks);
         vm.assume(users > 0);
+        vm.assume(users < 10);
 
         basicDistributor = new BasicDistributor(
             address(this),
@@ -216,5 +217,118 @@ contract BasicDistributorTest is BaseTest {
         basicDistributor.withdraw(0, 0);
 
         assertEq(token.balanceOf(a), (rewards * blocks) / users);
+    }
+
+    function testBasicDistributorWithdrawAllocPoints(
+        uint256 rewards,
+        uint256 allocPoints
+    ) public {
+        // Deposit a fixed amount, received fuzzed rewards
+        vm.assume(allocPoints > 1);
+        vm.assume(allocPoints < 2 ** 16);
+        vm.assume(rewards < 10 ** 27);
+        vm.roll(block.number);
+
+        basicDistributor = new BasicDistributor(
+            address(this),
+            rewards,
+            block.number,
+            token
+        );
+        token.transfer(address(basicDistributor), rewards);
+
+        basicDistributor.add(1, wcanto, 0, true, 0);
+        basicDistributor.add(allocPoints - 1, note, 0, true, 0);
+
+        address a = address(0x1);
+        vm.startPrank(a);
+
+        vm.deal(a, 10 ether);
+        IWCanto(address(wcanto)).deposit{value: 2 ether}();
+        wcanto.approve(address(basicDistributor), type(uint256).max);
+
+        basicDistributor.deposit(0, 1 ether);
+
+        vm.roll(block.number + 1);
+
+        basicDistributor.withdraw(0, 0);
+
+        vm.stopPrank();
+
+        assertEq(token.balanceOf(a), rewards / allocPoints);
+        assertGe(
+            token.balanceOf(address(basicDistributor)),
+            ((allocPoints - 1) * rewards) / allocPoints
+        );
+    }
+
+    function testBasicDistributorWithdrawAllRewards(
+        uint256 blocks,
+        uint8 users,
+        uint256 rewards
+    ) public {
+        // Deposit a fixed amount, received fuzzed rewards
+        vm.assume(blocks > 0);
+        vm.assume(blocks < 10 ** 7);
+        vm.assume(users > 0);
+        vm.assume(users < 10);
+        vm.assume(rewards % users == 0);
+        vm.assume(rewards % blocks == 0);
+        vm.assume(rewards > blocks);
+        vm.assume(rewards < 10 ** 27);
+        vm.roll(block.number);
+
+        basicDistributor = new BasicDistributor(
+            address(this),
+            rewards / blocks,
+            block.number,
+            token
+        );
+        token.transfer(address(basicDistributor), rewards);
+        basicDistributor.add(1, wcanto, 0, true, 0);
+
+        uint8 i = 0;
+        address a;
+        while (i < users) {
+            a = address(uint160(i + 1));
+            vm.startPrank(a);
+
+            vm.deal(a, 10 ether);
+            IWCanto(address(wcanto)).deposit{value: 2 ether}();
+            wcanto.approve(address(basicDistributor), type(uint256).max);
+
+            basicDistributor.deposit(0, 1 ether);
+
+            vm.stopPrank();
+            i += 1;
+        }
+
+        // basicDistributor.massUpdatePools();
+
+        vm.roll(block.number + blocks);
+        a = address(1);
+        console.log(
+            token.balanceOf(a),
+            token.balanceOf(address(basicDistributor)),
+            basicDistributor.pendingRewards(0, a)
+        );
+        vm.prank(a);
+        basicDistributor.withdraw(0, 0);
+
+        console.log(
+            token.balanceOf(a),
+            token.balanceOf(address(basicDistributor)),
+            basicDistributor.pendingRewards(0, a)
+        );
+        console.log(wcanto.balanceOf(address(basicDistributor)));
+        {
+            (uint256 a1, uint256 a2) = basicDistributor.userInfo(0, a);
+            console.log(a1, a2);
+        }
+        assertEq(token.balanceOf(a), rewards / users);
+        assertEq(
+            token.balanceOf(address(basicDistributor)),
+            ((users - 1) * rewards) / users
+        );
     }
 }

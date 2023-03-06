@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import "forge-std/console.sol";
 import "solmate/tokens/ERC20.sol";
 import "solmate/auth/Owned.sol";
 import "./LiquidityAdder.sol";
@@ -28,7 +29,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     PoolInfo[] public poolInfo;
     // Info of each user that stakes LP tokens.
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
-    // Total allocation poitns. Must be the sum of all allocation points in all pools.
+    // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
     // The block number when reward mining starts.
     uint256 public startBlock;
@@ -74,7 +75,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     function massUpdatePools() public {
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
-            _updatePool(pid);
+            _updatePool(poolInfo[pid]);
         }
     }
 
@@ -139,8 +140,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     }
 
     // Update reward variables of the given pool to be up-to-date.
-    function _updatePool(uint256 _pid) internal {
-        PoolInfo storage pool = poolInfo[_pid];
+    function _updatePool(PoolInfo storage pool) internal {
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
@@ -150,15 +150,20 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
             return;
         }
         uint256 multiplier = block.number - pool.lastRewardBlock;
-        uint256 rewards = multiplier * rewardsPerBlock;
-        pool.accRewardsPerShare += (rewards * PRECISION_FACTOR) / lpSupply;
+        uint256 rewards = (multiplier * rewardsPerBlock * pool.allocPoint) /
+            totalAllocPoint;
+        console.log(rewards, multiplier, lpSupply);
+        pool.accRewardsPerShare =
+            pool.accRewardsPerShare +
+            (rewards * PRECISION_FACTOR) /
+            lpSupply;
         pool.lastRewardBlock = block.number;
     }
 
     function deposit(uint256 _pid, uint256 _amount) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        _updatePool(_pid);
+        _updatePool(pool);
         if (user.amount > 0) {
             uint256 pending = ((user.amount * (pool.accRewardsPerShare)) /
                 PRECISION_FACTOR) - user.rewardDebt;
@@ -168,6 +173,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
         }
         if (_amount > 0) {
             uint256 amount = _amount;
+            uint256 balanceBefore = pool.lpToken.balanceOf(address(this));
             if (pool.depositFee > 0) {
                 uint256 fee = (_amount * pool.depositFee) / 10000;
                 pool.lpToken.transferFrom(msg.sender, owner, fee);
@@ -181,7 +187,10 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
                 pool.lpToken.transferFrom(msg.sender, address(this), _amount);
             }
 
-            user.amount = user.amount + amount;
+            user.amount =
+                user.amount +
+                pool.lpToken.balanceOf(address(this)) -
+                balanceBefore;
         }
         user.rewardDebt =
             (user.amount * pool.accRewardsPerShare) /
@@ -195,7 +204,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
         require(pool.depositFee != 10000, "full fee");
-        _updatePool(_pid);
+        _updatePool(pool);
         uint256 pending = ((user.amount * pool.accRewardsPerShare) /
             PRECISION_FACTOR) - (user.rewardDebt);
         if (pending > 0) {
@@ -225,7 +234,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     function pendingRewards(
         uint256 _pid,
         address _user
-    ) external view returns (uint256) {
+    ) public view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accRewardsPerShare = pool.accRewardsPerShare;

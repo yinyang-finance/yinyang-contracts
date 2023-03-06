@@ -17,9 +17,7 @@ contract BasicDistributor is Distributor {
     }
 
     function _payRewards(address recipient, uint256 amount) internal override {
-        uint256 paidAmount = amount > rewardToken.balanceOf(address(this))
-            ? rewardToken.balanceOf(address(this))
-            : amount;
-        rewardToken.transfer(recipient, paidAmount);
+        uint256 balance = rewardToken.balanceOf(address(this));
+        rewardToken.transfer(recipient, amount > balance ? balance : amount);
     }
 }
