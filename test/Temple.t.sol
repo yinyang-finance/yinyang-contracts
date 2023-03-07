@@ -156,11 +156,6 @@ contract TempleTest is BaseTest {
         vm.prank(otherUser);
         garden.withdraw(0, 0);
 
-        console.log(
-            garden.zen().balanceOf(address(this)),
-            garden.zen().balanceOf(otherUser)
-        );
-
         address voteToken = address(wcanto);
 
         temple.voteForNextTarget(voteToken, voteAmount);
@@ -168,11 +163,6 @@ contract TempleTest is BaseTest {
         temple.voteForNextTarget(voteToken, rewardsPerBlock - voteAmount);
 
         vm.warp(block.timestamp + epochPeriod + 1);
-        console.log(
-            temple.epochStart(),
-            temple.epochDuration(),
-            block.timestamp
-        );
         temple.harvest();
 
         uint256 balanceBefore = wcanto.balanceOf(address(this));
@@ -266,5 +256,62 @@ contract TempleTest is BaseTest {
         assertEq(temple.participations(1, address(this)), 2 * voteAmount);
         assertEq(temple.voices(1, voteToken), 2 * voteAmount);
         assertEq(temple.shares(), 2 * voteAmount);
+    }
+
+    function testTempleHarvestMultipleUsers(uint8 users) public {
+        vm.assume(users > 0);
+        vm.assume(rewardsPerBlock % users == 0);
+
+        uint256 voteAmount = 1;
+
+        // Deposit
+        address addr;
+        for (uint8 i = 0; i < users; i++) {
+            addr = address(uint160(i + 1));
+            vm.startPrank(addr);
+            vm.deal(addr, 10 ether);
+            IWCanto(address(wcanto)).deposit{value: 1 ether}();
+            wcanto.approve(address(garden), type(uint256).max);
+            garden.deposit(0, 1 ether);
+            vm.stopPrank();
+        }
+
+        vm.roll(block.number + 1);
+
+        // Collect rewards
+        for (uint8 i = 0; i < users; i++) {
+            addr = address(uint160(i + 1));
+            vm.startPrank(addr);
+            garden.withdraw(0, 0);
+            vm.stopPrank();
+        }
+
+        address voteToken = address(wcanto);
+
+        // Vote
+        for (uint8 i = 0; i < users; i++) {
+            addr = address(uint160(i + 1));
+            vm.startPrank(addr);
+            temple.voteForNextTarget(voteToken, voteAmount);
+            vm.stopPrank();
+        }
+
+        vm.warp(block.timestamp + epochPeriod + 1);
+        assertEq(temple.shares(), users);
+        temple.harvest();
+
+        uint256 balanceBefore = wcanto.balanceOf(addr);
+        uint256 balanceContractBefore = wcanto.balanceOf(address(temple));
+        vm.prank(addr);
+        temple.claimAllVoterShares();
+
+        assertEq(
+            wcanto.balanceOf(addr),
+            balanceBefore + (balanceContractBefore * voteAmount) / users
+        );
+        assertEq(temple.votersToken(addr), voteToken);
+        assertEq(temple.voices(0, voteToken), voteAmount * users);
+        assertEq(temple.shares(), 0);
+        assertEq(temple.zen().balanceOf(addr), rewardsPerBlock / users - 1);
     }
 }

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import "forge-std/console.sol";
 import "solmate/tokens/ERC20.sol";
 import "solmate/auth/Owned.sol";
 import "./LiquidityAdder.sol";
@@ -152,7 +151,6 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
         uint256 multiplier = block.number - pool.lastRewardBlock;
         uint256 rewards = (multiplier * rewardsPerBlock * pool.allocPoint) /
             totalAllocPoint;
-        console.log(rewards, multiplier, lpSupply);
         pool.accRewardsPerShare =
             pool.accRewardsPerShare +
             (rewards * PRECISION_FACTOR) /

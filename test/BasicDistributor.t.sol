@@ -182,7 +182,6 @@ contract BasicDistributorTest is BaseTest {
         vm.assume(blocks < 1000);
         vm.assume(rewards < 10 ** 27 / blocks);
         vm.assume(users > 0);
-        vm.assume(users < 10);
 
         basicDistributor = new BasicDistributor(
             address(this),
@@ -271,7 +270,6 @@ contract BasicDistributorTest is BaseTest {
         vm.assume(blocks > 0);
         vm.assume(blocks < 10 ** 7);
         vm.assume(users > 0);
-        vm.assume(users < 10);
         vm.assume(rewards % users == 0);
         vm.assume(rewards % blocks == 0);
         vm.assume(rewards > blocks);
@@ -307,24 +305,9 @@ contract BasicDistributorTest is BaseTest {
 
         vm.roll(block.number + blocks);
         a = address(1);
-        console.log(
-            token.balanceOf(a),
-            token.balanceOf(address(basicDistributor)),
-            basicDistributor.pendingRewards(0, a)
-        );
         vm.prank(a);
         basicDistributor.withdraw(0, 0);
 
-        console.log(
-            token.balanceOf(a),
-            token.balanceOf(address(basicDistributor)),
-            basicDistributor.pendingRewards(0, a)
-        );
-        console.log(wcanto.balanceOf(address(basicDistributor)));
-        {
-            (uint256 a1, uint256 a2) = basicDistributor.userInfo(0, a);
-            console.log(a1, a2);
-        }
         assertEq(token.balanceOf(a), rewards / users);
         assertEq(
             token.balanceOf(address(basicDistributor)),

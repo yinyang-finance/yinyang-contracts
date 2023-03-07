@@ -248,43 +248,6 @@ contract YinYangTest is BaseTest {
             address(this),
             block.timestamp + 360
         );
-        console.log(
-            IBaseV1Pair(
-                IBaseV1Router(router).pairFor(
-                    address(token),
-                    address(wcanto),
-                    false
-                )
-            ).totalSupply()
-        );
-        console.log(
-            IBaseV1Pair(
-                IBaseV1Router(router).pairFor(
-                    address(token),
-                    address(wcanto),
-                    false
-                )
-            ).token0(),
-            IBaseV1Pair(
-                IBaseV1Router(router).pairFor(
-                    address(token),
-                    address(wcanto),
-                    false
-                )
-            ).token1()
-        );
-        console.log(
-            IBaseV1Pair(token.pair()).token0(),
-            IBaseV1Pair(token.pair()).token1()
-        );
-        console.log(
-            token.pair(),
-            IBaseV1Router(router).pairFor(
-                address(token),
-                address(wcanto),
-                false
-            )
-        );
 
         token.includeAccount(sender);
         token.transfer(sender, transferAmount);
