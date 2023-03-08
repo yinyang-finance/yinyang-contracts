@@ -31,7 +31,10 @@ contract TempleTest is BaseTest {
             500,
             router,
             address(wcanto),
-            10 ** 19
+            10 ** 19,
+            150,
+            150,
+            200
         );
         YinYang yang = new YinYang(
             address(this),
@@ -40,7 +43,10 @@ contract TempleTest is BaseTest {
             500,
             router,
             address(wcanto),
-            10 ** 19
+            10 ** 19,
+            150,
+            150,
+            200
         );
         Zen zen = new Zen(address(this));
         zen.setPairs(router);

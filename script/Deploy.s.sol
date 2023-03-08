@@ -8,7 +8,7 @@ import "../src/BasicDistributor.sol";
 
 contract DeployScript is Script {
     uint256 initialSupply = 10 ** 7 * 10 ** 18;
-    uint256 minAmountToSell = 10 * 10 ** 18;
+    uint256 minAmountToSell = 1000 * 10 ** 18;
     uint256 blockTime = 6;
     uint256 blockPerDay = 86400 / blockTime;
     uint256 rewardPerDay = 10 ** 23;
@@ -43,7 +43,10 @@ contract DeployScript is Script {
             500,
             router,
             address(wcanto),
-            minAmountToSell
+            minAmountToSell,
+            0,
+            200,
+            300
         );
         YinYang yang = new YinYang(
             tx.origin,
@@ -52,7 +55,10 @@ contract DeployScript is Script {
             500,
             router,
             address(wcanto),
-            minAmountToSell
+            minAmountToSell,
+            200,
+            0,
+            300
         );
         Zen zen = new Zen(tx.origin);
         zen.setPairs(router);

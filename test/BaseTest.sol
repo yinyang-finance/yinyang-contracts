@@ -9,6 +9,6 @@ contract BaseTest is Test {
     address router = address(0x9B2920e72dF6E1A7053bEa7235c65079F5104398); // Velocimeter
 
     function setUp() public virtual {
-        vm.createSelectFork(vm.rpcUrl("test_canto"));
+        vm.createSelectFork(vm.rpcUrl("canto"));
     }
 }

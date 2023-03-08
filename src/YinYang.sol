@@ -5,12 +5,15 @@ import "./ReflectToken.sol";
 import "./LiquidityAdder.sol";
 
 contract YinYang is ReflectToken {
-    address public router;
+    address public immutable router;
     address public pair;
-    address public quote;
+    address public immutable quote;
     address public temple;
     LiquidityAdder public liquidityAdder;
-    uint256 public minimumTokenToSell;
+    uint256 public immutable minimumTokenToSell;
+    uint256 public immutable burnBP;
+    uint256 public immutable liquidityBP;
+    uint256 public immutable templeBP;
 
     constructor(
         address _owner,
@@ -19,11 +22,19 @@ contract YinYang is ReflectToken {
         uint16 feeBP,
         address _router,
         address _quote,
-        uint256 _minimumTokenToSell
+        uint256 _minimumTokenToSell,
+        uint16 _burnBP,
+        uint16 _liquidityBP,
+        uint16 _templeBP
     ) ReflectToken(_owner, name, symbol, 18, feeBP) {
+        require(_burnBP + _liquidityBP + _templeBP <= 10000);
+
         router = _router;
         quote = _quote;
         minimumTokenToSell = _minimumTokenToSell;
+        burnBP = _burnBP;
+        liquidityBP = _liquidityBP;
+        templeBP = _templeBP;
 
         _excludeAccount(router);
         _excludeAccount(pair);
@@ -59,27 +70,33 @@ contract YinYang is ReflectToken {
         address sender,
         uint256 reflectionFee
     ) internal override returns (uint256) {
-        uint256 burn = reflectionFee / 5;
-        uint256 liquidity = reflectionFee / 5;
-        uint256 templeFee = (2 * reflectionFee) / 5;
+        uint256 burn = (reflectionFee * burnBP) / 10000;
+        uint256 liquidity = (reflectionFee * liquidityBP) / 10000;
+        uint256 templeFee = (reflectionFee * templeBP) / 10000;
 
-        // Burn a share
-        _tTotal = _tTotal - burn;
-        _rTotal = _rTotal - burn * _getRate();
-        emit Transfer(sender, address(0), burn);
+        if (burn > 0) {
+            // Burn a share
+            _tTotal = _tTotal - burn;
+            _rTotal = _rTotal - burn * _getRate();
+            emit Transfer(sender, address(0), burn);
+        }
 
-        // Send to temple
-        _tOwned[address(temple)] += templeFee;
-        emit Transfer(sender, temple, templeFee);
+        if (templeFee > 0) {
+            // Send to temple
+            _tOwned[address(temple)] += templeFee;
+            emit Transfer(sender, temple, templeFee);
+        }
 
-        // Send a share to the liquidity adder
-        uint256 newLiquidity = _tOwned[address(liquidityAdder)] + liquidity;
-        _tOwned[address(liquidityAdder)] = newLiquidity;
-        emit Transfer(sender, address(liquidityAdder), liquidity);
+        if (liquidity > 0) {
+            // Send a share to the liquidity adder
+            uint256 newLiquidity = _tOwned[address(liquidityAdder)] + liquidity;
+            _tOwned[address(liquidityAdder)] = newLiquidity;
+            emit Transfer(sender, address(liquidityAdder), liquidity);
 
-        // Add liquidity if threshold reached
-        if (newLiquidity > minimumTokenToSell) {
-            liquidityAdder.addLiquidity();
+            // Add liquidity if threshold reached
+            if (newLiquidity > minimumTokenToSell) {
+                liquidityAdder.addLiquidity();
+            }
         }
 
         // Reflect the rest

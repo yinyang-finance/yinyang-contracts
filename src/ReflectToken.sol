@@ -360,11 +360,10 @@ abstract contract ReflectToken is Owned, TurnstileRegisterEntry {
             _rOwned[sender] = _rOwned[sender] - reflectedAmount;
             _rOwned[recipient] = _rOwned[recipient] + reflectedTransferAmount;
         }
+        emit Transfer(sender, recipient, transferedAmount);
 
         uint256 remainingFee = _onTransfer(sender, reflectionFee);
         _absorbFee(reflectedFee, remainingFee);
-
-        emit Transfer(sender, recipient, transferedAmount);
     }
 
     function _transferToExcluded(
@@ -384,11 +383,10 @@ abstract contract ReflectToken is Owned, TurnstileRegisterEntry {
             _rOwned[sender] = _rOwned[sender] - reflectedAmount;
         }
         _tOwned[recipient] = _tOwned[recipient] + transferedAmount;
+        emit Transfer(sender, recipient, transferedAmount);
 
         uint256 remainingFee = _onTransfer(sender, reflectionFee);
         _absorbFee(reflectedFee, remainingFee);
-
-        emit Transfer(sender, recipient, transferedAmount);
     }
 
     function _transferFromExcluded(
@@ -408,11 +406,10 @@ abstract contract ReflectToken is Owned, TurnstileRegisterEntry {
         unchecked {
             _rOwned[recipient] = _rOwned[recipient] + reflectedTransferAmount;
         }
+        emit Transfer(sender, recipient, transferedAmount);
 
         uint256 remainingFee = _onTransfer(sender, reflectionFee);
         _absorbFee(reflectedFee, remainingFee);
-
-        emit Transfer(sender, recipient, transferedAmount);
     }
 
     function _transferBothExcluded(
@@ -462,12 +459,11 @@ abstract contract ReflectToken is Owned, TurnstileRegisterEntry {
         uint256 rSupply = _rTotal;
         uint256 tSupply = _tTotal;
         for (uint256 i = 0; i < _excluded.length; i++) {
-            if (
-                _rOwned[_excluded[i]] > rSupply ||
-                _tOwned[_excluded[i]] > tSupply
-            ) return (_rTotal, _tTotal);
-            rSupply = rSupply - _rOwned[_excluded[i]];
-            tSupply = tSupply - _tOwned[_excluded[i]];
+            address excluded = _excluded[i];
+            if (_rOwned[excluded] > rSupply || _tOwned[excluded] > tSupply)
+                return (_rTotal, _tTotal);
+            rSupply = rSupply - _rOwned[excluded];
+            tSupply = tSupply - _tOwned[excluded];
         }
         if (rSupply < _rTotal / _tTotal) return (_rTotal, _tTotal);
         return (rSupply, tSupply);
