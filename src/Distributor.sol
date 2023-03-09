@@ -88,6 +88,11 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
         }
     }
 
+    function setRewardsPerBlock(uint256 newRewards) external onlyOwner {
+        massUpdatePools();
+        rewardsPerBlock = newRewards;
+    }
+
     // Add a new lp to the pool. Can only be called by the owner.
     function add(
         uint256 _allocPoint,

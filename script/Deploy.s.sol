@@ -40,25 +40,25 @@ contract DeployScript is Script {
             tx.origin,
             "Yin",
             "YIN",
-            500,
+            600,
             router,
             address(wcanto),
             minAmountToSell,
-            0,
-            200,
-            300
+            3333,
+            1666,
+            3333
         );
         YinYang yang = new YinYang(
             tx.origin,
             "Yang",
             "YANG",
-            500,
+            600,
             router,
             address(wcanto),
             minAmountToSell,
-            200,
-            0,
-            300
+            3333,
+            1666,
+            3333
         );
         Zen zen = new Zen(tx.origin);
         zen.setPairs(router);
