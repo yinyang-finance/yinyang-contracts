@@ -237,8 +237,8 @@ contract Temple is Owned, TurnstileRegisterEntry, Router {
         }
     }
 
-    function updateUserAccount(uint256 end) external {
-        _updateUserAccount(msg.sender, end);
+    function updateUserAccount(address user, uint256 end) external {
+        _updateUserAccount(user, end);
     }
 
     /*//////////////////////////////////////////////////////////////
