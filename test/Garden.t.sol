@@ -4,22 +4,24 @@ pragma solidity ^0.8.18;
 import "forge-std/Test.sol";
 import "./BaseTest.sol";
 import "../src/Temple.sol";
+import "../src/YinYang.sol";
+import "../src/Zen.sol";
 import "../src/LiquidityAdder.sol";
 
 contract GardenTest is BaseTest {
     Temple public temple;
     Garden public garden;
-    ERC20 public quote;
+    IERC20 public quote;
     uint16 transferFee = 700;
     uint256 thresholdAmount = 10 ** 19;
     uint256 rewardsPerBlock = 10 ** 18;
-    ERC20 wcanto;
-    ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
+    IERC20 wcanto;
+    IERC20 note = IERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
 
     function setUp() public override {
         super.setUp();
 
-        wcanto = ERC20(IBaseV1Router(router).weth());
+        wcanto = IERC20(IBaseV1Router(router).weth());
 
         vm.deal(address(this), 100 ether);
         IWCanto(address(wcanto)).deposit{value: 50 ether}();
@@ -55,9 +57,9 @@ contract GardenTest is BaseTest {
             address(this),
             block.timestamp,
             1,
-            yin,
-            yang,
-            zen,
+            IYinYang(address(yin)),
+            IYinYang(address(yang)),
+            IZen(address(zen)),
             router
         );
         zen.transferOwnership(address(temple));
@@ -78,7 +80,7 @@ contract GardenTest is BaseTest {
 
         assertEq(garden.poolLength(), 1);
         (
-            ERC20 _lpToken,
+            IERC20 _lpToken,
             ,
             uint256 _allocPoint,
             uint256 _lastRewardBlock,

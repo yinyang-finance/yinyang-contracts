@@ -2,7 +2,6 @@
 pragma solidity >=0.8.18;
 
 import "solmate/auth/Owned.sol";
-import "solmate/tokens/ERC20.sol";
 import "./TurnstileRegisterEntry.sol";
 
 abstract contract ReflectToken is Owned, TurnstileRegisterEntry {

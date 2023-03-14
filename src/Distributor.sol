@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import "solmate/tokens/ERC20.sol";
+import "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import "solmate/auth/Owned.sol";
 import "./LiquidityAdder.sol";
 import "./TurnstileRegisterEntry.sol";
@@ -15,7 +15,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
 
     // Info of each pool.
     struct PoolInfo {
-        ERC20 lpToken;
+        IERC20 lpToken;
         uint16 depositFee;
         uint256 allocPoint;
         uint256 lastRewardBlock;
@@ -78,7 +78,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
         }
     }
 
-    function checkPoolDuplicate(ERC20 _lpToken) internal view {
+    function checkPoolDuplicate(IERC20 _lpToken) internal view {
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
             require(
@@ -96,7 +96,7 @@ abstract contract Distributor is Owned, TurnstileRegisterEntry {
     // Add a new lp to the pool. Can only be called by the owner.
     function add(
         uint256 _allocPoint,
-        ERC20 _lpToken,
+        IERC20 _lpToken,
         uint16 _depositFee,
         bool _withUpdate,
         uint256 _lastRewardBlock

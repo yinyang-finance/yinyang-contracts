@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import "solmate/tokens/ERC20.sol";
 import "./ISwap.sol";
+import "openzeppelin/token/ERC20/IERC20.sol";
 
 contract Router {
     IBaseV1Router public immutable router;
@@ -17,7 +17,7 @@ contract Router {
         uint256 amount
     ) public {
         IBaseV1Pair pair = IBaseV1Pair(router.pairFor(input, output, false));
-        ERC20(input).transfer(address(pair), amount);
+        IERC20(input).transfer(address(pair), amount);
 
         (address token0, ) = router.sortTokens(input, output);
         uint amountInput;
@@ -28,7 +28,7 @@ contract Router {
             (uint reserveInput, ) = input == token0
                 ? (reserve0, reserve1)
                 : (reserve1, reserve0);
-            amountInput = ERC20(input).balanceOf(address(pair)) - reserveInput;
+            amountInput = IERC20(input).balanceOf(address(pair)) - reserveInput;
             (amountOutput, ) = router.getAmountOut(amountInput, input, output);
         }
         (uint amount0Out, uint amount1Out) = input == token0

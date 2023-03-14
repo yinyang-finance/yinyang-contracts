@@ -4,22 +4,24 @@ pragma solidity ^0.8.18;
 import "forge-std/Test.sol";
 import "./BaseTest.sol";
 import "../src/Temple.sol";
+import "../src/YinYang.sol";
+import "../src/Zen.sol";
 import "../src/LiquidityAdder.sol";
 
 contract TempleTest is BaseTest {
     Temple public temple;
     Garden public garden;
-    ERC20 public quote;
+    IERC20 public quote;
     uint16 transferFee = 700;
     uint256 thresholdAmount = 10 ** 19;
     uint256 rewardsPerBlock = 10 ** 18;
     uint256 epochPeriod = 2;
-    ERC20 wcanto;
+    IERC20 wcanto;
 
     function setUp() public override {
         super.setUp();
 
-        wcanto = ERC20(IBaseV1Router(router).weth());
+        wcanto = IERC20(IBaseV1Router(router).weth());
 
         vm.deal(address(this), 100 ether);
         IWCanto(address(wcanto)).deposit{value: 50 ether}();
@@ -88,9 +90,9 @@ contract TempleTest is BaseTest {
             address(this),
             block.timestamp,
             epochPeriod,
-            yin,
-            yang,
-            zen,
+            IYinYang(address(yin)),
+            IYinYang(address(yang)),
+            IZen(address(zen)),
             router
         );
         yin.excludeAccount(address(temple));

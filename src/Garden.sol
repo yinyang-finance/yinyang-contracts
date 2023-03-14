@@ -2,11 +2,11 @@
 pragma solidity ^0.8.18;
 
 import "./Distributor.sol";
-import "./Zen.sol";
+import "./IZen.sol";
 import "./Temple.sol";
 
 contract Garden is Distributor {
-    Zen public zen;
+    IZen public zen;
     Temple public temple;
 
     constructor(
@@ -17,7 +17,7 @@ contract Garden is Distributor {
         address _temple
     ) Distributor(_owner, _rewardsPerBlock, _startBlock) {
         temple = Temple(_temple);
-        zen = Zen(_zen);
+        zen = IZen(_zen);
     }
 
     function _payRewards(address recipient, uint256 amount) internal override {

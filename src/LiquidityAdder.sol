@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import "solmate/tokens/ERC20.sol";
-import "./ReflectToken.sol";
+import "openzeppelin/token/ERC20/IERC20.sol";
 import "./TurnstileRegisterEntry.sol";
 import "./ISwap.sol";
 import "./Router.sol";
 
 contract LiquidityAdder is TurnstileRegisterEntry, Router {
     IBaseV1Pair public pair;
-    ReflectToken public token;
-    ERC20 public quote;
+    IERC20 public token;
+    IERC20 public quote;
     uint256 public minimumTokenToSell;
     bool private initialized = false;
     bool private inSwapAndLiquify = false;
@@ -24,8 +23,8 @@ contract LiquidityAdder is TurnstileRegisterEntry, Router {
         address _quote
     ) TurnstileRegisterEntry() Router(_router) {
         pair = IBaseV1Pair(_pair);
-        token = ReflectToken(_token);
-        quote = ERC20(_quote);
+        token = IERC20(_token);
+        quote = IERC20(_quote);
         token.approve(_router, ~uint(0));
         quote.approve(_router, ~uint(0));
     }

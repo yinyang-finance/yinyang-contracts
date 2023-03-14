@@ -14,13 +14,13 @@ contract BasicDistributorTest is BaseTest {
     uint256 thresholdAmount = 10 ** 19;
     uint256 rewardsPerBlock = 10 ** 18;
     // uint256 startBlock = 0;
-    ERC20 wcanto;
-    ERC20 note = ERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
+    IERC20 wcanto;
+    IERC20 note = IERC20(address(0x4e71A2E537B7f9D9413D3991D37958c0b5e1e503));
 
     function setUp() public override {
         super.setUp();
         token = new SimpleERC20();
-        wcanto = ERC20(IBaseV1Router(router).weth());
+        wcanto = IERC20(IBaseV1Router(router).weth());
     }
 
     function testBasicDistributorAddPool(uint16 depositFee) public {
@@ -30,7 +30,7 @@ contract BasicDistributorTest is BaseTest {
             address(this),
             rewardsPerBlock,
             0,
-            token
+            IERC20(address(token))
         );
 
         uint256 allocPoint = 1;
@@ -38,7 +38,7 @@ contract BasicDistributorTest is BaseTest {
 
         assertEq(basicDistributor.poolLength(), 1);
         (
-            ERC20 _lpToken,
+            IERC20 _lpToken,
             uint16 _depositFee,
             uint256 _allocPoint,
             uint256 _lastRewardBlock,
@@ -63,7 +63,7 @@ contract BasicDistributorTest is BaseTest {
             address(this),
             rewardsPerBlock,
             0,
-            token
+            IERC20(address(token))
         );
 
         basicDistributor.add(1, wcanto, depositFee, true, 0);
@@ -94,7 +94,7 @@ contract BasicDistributorTest is BaseTest {
             address(this),
             rewardsPerBlock,
             0,
-            token
+            IERC20(address(token))
         );
 
         basicDistributor.add(1, wcanto, 0, true, 0);
@@ -119,7 +119,7 @@ contract BasicDistributorTest is BaseTest {
             address(this),
             rewards,
             startBlock,
-            token
+            IERC20(address(token))
         );
         token.transfer(
             address(basicDistributor),
@@ -149,7 +149,7 @@ contract BasicDistributorTest is BaseTest {
             address(this),
             rewards,
             0,
-            token
+            IERC20(address(token))
         );
         token.transfer(
             address(basicDistributor),
@@ -187,7 +187,7 @@ contract BasicDistributorTest is BaseTest {
             address(this),
             rewards,
             0,
-            token
+            IERC20(address(token))
         );
         token.transfer(
             address(basicDistributor),
@@ -232,7 +232,7 @@ contract BasicDistributorTest is BaseTest {
             address(this),
             rewards,
             block.number,
-            token
+            IERC20(address(token))
         );
         token.transfer(address(basicDistributor), rewards);
 
@@ -280,7 +280,7 @@ contract BasicDistributorTest is BaseTest {
             address(this),
             rewards / blocks,
             block.number,
-            token
+            IERC20(address(token))
         );
         token.transfer(address(basicDistributor), rewards);
         basicDistributor.add(1, wcanto, 0, true, 0);

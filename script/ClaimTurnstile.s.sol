@@ -35,7 +35,7 @@ contract ClaimTurnstile is Script {
     address atom = address(0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265);
     address cantoInu = address(0x7264610A66EcA758A8ce95CF11Ff5741E1fd0455);
     address cantoShib = address(0xA025ced4aab666c1bbBFd5A224816705b438E50B);
-    ERC20 wcanto;
+    IERC20 wcanto;
     Garden garden;
     Temple temple;
 

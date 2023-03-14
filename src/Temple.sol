@@ -2,8 +2,8 @@
 pragma solidity ^0.8.18;
 
 import "solmate/auth/Owned.sol";
-import "./YinYang.sol";
-import "./Zen.sol";
+import "./IYinYang.sol";
+import "./IZen.sol";
 import "./Garden.sol";
 import "./ISwap.sol";
 import "./TurnstileRegisterEntry.sol";
@@ -47,9 +47,9 @@ contract Temple is Owned, TurnstileRegisterEntry, Router {
 
     address public wcanto;
 
-    YinYang public yin;
-    YinYang public yang;
-    Zen public zen;
+    IYinYang public yin;
+    IYinYang public yang;
+    IZen public zen;
     Garden public garden;
 
     EpochInfo[] history;
@@ -77,9 +77,9 @@ contract Temple is Owned, TurnstileRegisterEntry, Router {
         address _owner,
         uint256 start,
         uint256 _epochDuration,
-        YinYang _yin,
-        YinYang _yang,
-        Zen _zen,
+        IYinYang _yin,
+        IYinYang _yang,
+        IZen _zen,
         address _router
     ) Owned(_owner) TurnstileRegisterEntry() Router(_router) {
         epochDuration = _epochDuration;
@@ -95,8 +95,8 @@ contract Temple is Owned, TurnstileRegisterEntry, Router {
 
         yin.approve(_router, type(uint256).max);
         yang.approve(_router, type(uint256).max);
-        ERC20(yin.quote()).approve(_router, type(uint256).max);
-        ERC20(yang.quote()).approve(_router, type(uint256).max);
+        IERC20(yin.quote()).approve(_router, type(uint256).max);
+        IERC20(yang.quote()).approve(_router, type(uint256).max);
     }
 
     function setGarden(Garden _garden) external onlyOwner {
@@ -211,11 +211,11 @@ contract Temple is Owned, TurnstileRegisterEntry, Router {
             swapExactTokensForTokensSupportingFeeOnTransferTokens(
                 wcanto,
                 currentTarget,
-                ERC20(wcanto).balanceOf(address(this))
+                IERC20(wcanto).balanceOf(address(this))
             );
         }
 
-        tokenAccounts[currentTarget].amount = ERC20(currentTarget).balanceOf(
+        tokenAccounts[currentTarget].amount = IERC20(currentTarget).balanceOf(
             address(this)
         );
         _updateUserAccount(msg.sender, history.length);
@@ -313,7 +313,7 @@ contract Temple is Owned, TurnstileRegisterEntry, Router {
             address token = userTokens[user][i];
             s[i] = ShareInfo({
                 token: token,
-                decimals: ERC20(token).decimals(),
+                decimals: IERC20Metadata(token).decimals(),
                 amount: (tokenAccounts[token].amount *
                     userAccounts[user][token]) / tokenAccounts[token].shares
             });
@@ -349,7 +349,7 @@ contract Temple is Owned, TurnstileRegisterEntry, Router {
     }
 
     function _claimSingleEpoch(ShareInfo[] memory s, uint256 i) internal {
-        uint256 contractBalance = ERC20(s[i].token).balanceOf(address(this));
+        uint256 contractBalance = IERC20(s[i].token).balanceOf(address(this));
         if (s[i].amount > contractBalance) {
             s[i].amount = contractBalance; // For rounding errors
         }
@@ -367,7 +367,7 @@ contract Temple is Owned, TurnstileRegisterEntry, Router {
             userTokens[msg.sender].length - 1
         ];
         userTokens[msg.sender].pop();
-        ERC20(s[i].token).transfer(msg.sender, s[i].amount);
+        IERC20(s[i].token).transfer(msg.sender, s[i].amount);
         emit Withdraw(msg.sender, s[i].token, s[i].amount);
     }
 }
