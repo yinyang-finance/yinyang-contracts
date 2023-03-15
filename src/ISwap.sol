@@ -29,8 +29,6 @@ interface IBaseV1Pair {
             address t1
         );
 
-    function claimFees() external returns (uint, uint);
-
     function tokens() external returns (address, address);
 
     function transferFrom(
@@ -68,8 +66,6 @@ interface IBaseV1Pair {
     function getAmountOut(uint, address) external view returns (uint);
 
     function sync() external;
-
-    function fees() external returns (address);
 }
 
 interface IBaseV1Router {

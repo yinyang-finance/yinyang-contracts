@@ -51,7 +51,7 @@ contract LiquidityAdderTest is BaseTest {
             IBaseV1Router(router).pairFor(address(quote), address(token), false)
         ).getReserves();
 
-        adder.addLiquidity();
+        adder.addLiquidity(address(this));
 
         (uint256 r0after, uint256 r1after, ) = IBaseV1Pair(
             IBaseV1Router(router).pairFor(address(quote), address(token), false)

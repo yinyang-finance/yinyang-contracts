@@ -55,7 +55,6 @@ contract YinYang is ReflectToken {
         liquidityAdder = new LiquidityAdder(router, pair, address(this), quote);
         _excludeAccount(address(liquidityAdder));
         _excludeAccount(pair);
-        _excludeAccount(IBaseV1Pair(pair).fees());
         mintInitialSupply(recipient, initialSupply);
 
         initialized = true;

@@ -16,7 +16,7 @@ contract AddLiquidityScript is Script {
     uint256 epochPeriod = 86400;
     uint16 depositFee = 500;
     uint256 startBlock = 3180000;
-    address router = address(0x9B2920e72dF6E1A7053bEa7235c65079F5104398);
+    address router = address(0x8e2e2f70B4bD86F82539187A634FB832398cc771);
     address eth = address(0x5FD55A1B9FC24967C4dB09C513C3BA0DFa7FF687);
     address atom = address(0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265);
     address cantoInu = address(0x7264610A66EcA758A8ce95CF11Ff5741E1fd0455);
@@ -36,8 +36,9 @@ contract AddLiquidityScript is Script {
 
         wcanto = IERC20(IBaseV1Router(router).weth());
 
-        IYinYang yin = IYinYang(0xCD8a1C3ba11CF5ECfa6267617243239504a98d90);
-        IYinYang yang = IYinYang(0x82e01223d51Eb87e16A03E24687EDF0F294da6f1);
+        IYinYang yin = IYinYang(0xefc1aB2475ACb7E60499Efb171D173be19928a05);
+        IYinYang yang = IYinYang(0x870526b7973b56163a6997bB7C886F5E4EA53638);
+        IZen zen = IZen(0xD49a0e9A4CD5979aE36840f542D2d7f02C4817Be);
 
         yang.approve(router, type(uint256).max);
         wcanto.approve(router, type(uint256).max);
@@ -53,9 +54,20 @@ contract AddLiquidityScript is Script {
             block.timestamp + 100
         );
         yin.approve(router, type(uint256).max);
-        wcanto.approve(router, type(uint256).max);
         IBaseV1Router(router).addLiquidity(
             address(yin),
+            address(wcanto),
+            false,
+            10 ** 17,
+            10 ** 16,
+            0,
+            0,
+            tx.origin,
+            block.timestamp + 100
+        );
+        zen.approve(router, type(uint256).max);
+        IBaseV1Router(router).addLiquidity(
+            address(zen),
             address(wcanto),
             false,
             10 ** 17,
