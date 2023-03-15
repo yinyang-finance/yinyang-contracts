@@ -9,4 +9,6 @@ interface IYinYang is IERC20Metadata {
     function quote() external returns (address);
 
     function pair() external returns (address);
+
+    function liquidityAdder() external returns (address);
 }

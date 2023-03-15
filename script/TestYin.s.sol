@@ -30,6 +30,7 @@ contract YinScript is Script {
         vm.deal(tx.origin, 100 ether);
 
         // TODO: Update for mainnet
+        // Deployed: 0x34DDB6ab6879C5209979A769f50C67A840E43F3a
         bool testnet = true;
         if (testnet) {
             blockTime = 6;
@@ -68,6 +69,7 @@ contract YinScript is Script {
         yin.initialize(address(tx.origin), initialSupply);
 
         yin.approve(router, type(uint256).max);
+        IWCanto(address(wcanto)).deposit{value: 10 ** 17}();
         wcanto.approve(router, type(uint256).max);
         IBaseV1Router(router).addLiquidity(
             address(yin),

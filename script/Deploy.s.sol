@@ -33,20 +33,6 @@ contract DeployScript is Script {
 
     function setUp() public {
         vm.deal(tx.origin, 100 ether);
-
-        // TODO: Update for mainnet
-        bool testnet = true;
-        if (testnet) {
-            blockTime = 6;
-            blockPerDay = 86400 / blockTime;
-            rewardPerDay = 10 ** 27;
-            rewardsPerBlock = rewardPerDay / blockPerDay;
-            epochPeriod = 3600;
-            eth = address(0x5FD55A1B9FC24967C4dB09C513C3BA0DFa7FF687);
-            atom = address(0xecEEEfCEE421D8062EF8d6b4D814efe4dc898265);
-            cantoInu = address(0x7264610A66EcA758A8ce95CF11Ff5741E1fd0455);
-            cantoBonk = address(0x38D11B40D2173009aDB245b869e90525950aE345);
-        }
     }
 
     function run() public {
@@ -161,6 +147,56 @@ contract DeployScript is Script {
         yangDistributor.transferOwnership(address(timelock));
         garden.transferOwnership(address(timelock));
         temple.transferOwnership(address(timelock));
+
+        // Transfer CSR
+        Turnstile turnstile = Turnstile(
+            0xEcf044C5B4b867CFda001101c617eCd347095B44
+        );
+        turnstile.transferFrom(
+            tx.origin,
+            address(timelock),
+            turnstile.getTokenId(address(yin))
+        );
+        turnstile.transferFrom(
+            tx.origin,
+            address(timelock),
+            turnstile.getTokenId(address(yin.liquidityAdder()))
+        );
+        turnstile.transferFrom(
+            tx.origin,
+            address(timelock),
+            turnstile.getTokenId(address(yang))
+        );
+        turnstile.transferFrom(
+            tx.origin,
+            address(timelock),
+            turnstile.getTokenId(address(yang.liquidityAdder()))
+        );
+        turnstile.transferFrom(
+            tx.origin,
+            address(timelock),
+            turnstile.getTokenId(address(zen))
+        );
+        turnstile.transferFrom(
+            tx.origin,
+            address(timelock),
+            turnstile.getTokenId(address(yinDistributor))
+        );
+        turnstile.transferFrom(
+            tx.origin,
+            address(timelock),
+            turnstile.getTokenId(address(yangDistributor))
+        );
+        turnstile.transferFrom(
+            tx.origin,
+            address(timelock),
+            turnstile.getTokenId(address(garden))
+        );
+        turnstile.transferFrom(
+            tx.origin,
+            address(timelock),
+            turnstile.getTokenId(address(temple))
+        );
 
         vm.stopBroadcast();
 

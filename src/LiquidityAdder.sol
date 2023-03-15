@@ -29,7 +29,7 @@ contract LiquidityAdder is TurnstileRegisterEntry, Router {
         quote.approve(_router, ~uint(0));
     }
 
-    function addLiquidity() public {
+    function addLiquidity(address to) public {
         uint256 adderTokenBalance = token.balanceOf(address(this));
 
         if (
@@ -62,7 +62,7 @@ contract LiquidityAdder is TurnstileRegisterEntry, Router {
                 newBalance,
                 0,
                 0,
-                address(this),
+                to,
                 block.timestamp + 360
             );
 

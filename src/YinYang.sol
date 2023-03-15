@@ -95,7 +95,7 @@ contract YinYang is ReflectToken {
 
             // Add liquidity if threshold reached
             if (newLiquidity > minimumTokenToSell) {
-                liquidityAdder.addLiquidity();
+                liquidityAdder.addLiquidity(owner);
             }
         }
 
