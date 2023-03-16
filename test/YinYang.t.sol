@@ -39,9 +39,8 @@ contract YinYangTest is BaseTest {
             liquidityBP,
             templeBP
         );
-        token.excludeAccount(address(this));
-        token.excludeAccount(sender);
         token.initialize(address(this), initialSupply);
+        token.excludeAccount(sender);
         token.excludeAccount(temple);
         token.setTemple(temple);
     }

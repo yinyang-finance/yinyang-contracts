@@ -4,6 +4,9 @@ out = 'out'
 libs = ['lib']
 gas_reports = ["*"]
 optimizer_runs = 1000
+[fuzz]
+runs = 1024
+max_test_rejects = 1048576
 [rpc_endpoints]
 test = "https://eth-mainnet.g.alchemy.com/v2/7IoM-e_r1o69S1RrwdWc4jh_R3K5NHzC"
 test_canto = "https://mainnode.plexnode.org:8545"

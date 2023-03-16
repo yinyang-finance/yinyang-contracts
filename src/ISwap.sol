@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import "openzeppelin/token/ERC20/IERC20.sol";
+
 interface IWCanto {
     function deposit() external payable;
 
@@ -9,9 +11,7 @@ interface IWCanto {
     function withdraw(uint) external;
 }
 
-interface IBaseV1Pair {
-    function totalSupply() external returns (uint256);
-
+interface IBaseV1Pair is IERC20 {
     function token0() external returns (address);
 
     function token1() external returns (address);

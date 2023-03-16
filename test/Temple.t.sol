@@ -53,9 +53,7 @@ contract TempleTest is BaseTest {
         Zen zen = new Zen(address(this));
         zen.setPairs(router);
 
-        yin.excludeAccount(address(this));
         yin.initialize(address(this), 10 ** 27);
-        yang.excludeAccount(address(this));
         yang.initialize(address(this), 10 ** 27);
 
         vm.deal(address(this), 10 ** 24);

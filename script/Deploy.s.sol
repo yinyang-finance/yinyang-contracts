@@ -82,9 +82,7 @@ contract DeployScript is Script {
             ERC20(address(yang))
         );
 
-        yin.excludeAccount(address(yinDistributor));
         yin.initialize(address(yinDistributor), initialSupply);
-        yang.excludeAccount(address(yangDistributor));
         yang.initialize(address(yangDistributor), initialSupply);
 
         temple = new Temple(

@@ -36,9 +36,9 @@ contract AddLiquidityScript is Script {
 
         wcanto = IERC20(IBaseV1Router(router).weth());
 
-        IYinYang yin = IYinYang(0xefc1aB2475ACb7E60499Efb171D173be19928a05);
-        IYinYang yang = IYinYang(0x870526b7973b56163a6997bB7C886F5E4EA53638);
-        IZen zen = IZen(0xD49a0e9A4CD5979aE36840f542D2d7f02C4817Be);
+        IYinYang yin = IYinYang(0x3Fbf94bEd1223AC9846c15f54c77b26E8374C7E3);
+        IYinYang yang = IYinYang(0x0DD0F99724106D113c5F745EED1fA74931947522);
+        IZen zen = IZen(0x03500484A2E8849f7E2f40bE16fa6F36c86707aF);
 
         yang.approve(router, type(uint256).max);
         wcanto.approve(router, type(uint256).max);

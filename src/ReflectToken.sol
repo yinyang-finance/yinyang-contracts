@@ -239,13 +239,14 @@ abstract contract ReflectToken is Owned, TurnstileRegisterEntry {
         uint256 amount
     ) public onlyOwner {
         require(!initialized, "Initialized");
-        require(_isExcluded[recipient], "Recipient not excluded");
+        require(!_isExcluded[recipient], "Recipient excluded");
 
         initialized = true;
         _tTotal = amount;
         _rTotal = (MAX - (MAX % amount));
-        _tOwned[recipient] = amount;
+        // _tOwned[recipient] = amount;
         _rOwned[recipient] = (MAX - (MAX % amount));
+        _excludeAccount(recipient);
 
         emit Transfer(address(0), recipient, amount);
     }

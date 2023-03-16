@@ -39,7 +39,6 @@ contract ReflectTokenTest is BaseTest {
         vm.assume(sender != recipient);
 
         token = new Reflect(address(this), "Test", "TEST", 18, transferFee);
-        token.excludeAccount(address(this));
         token.excludeAccount(sender);
         token.mintInitialSupply(address(this), initialSupply);
         token.transfer(sender, transferAmount);
